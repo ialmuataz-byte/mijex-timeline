@@ -17,6 +17,7 @@
   under these two keys:
     - mijex.campaign.events.v1   (timeline events)
     - mijex.campaign.kpis.v1     (Campaign Highlights metrics)
+    - mijex.campaign.migrations  (one-time upgrade marker)
   Data is per browser and per file location — it is not shared
   with other people or devices.
 
@@ -26,10 +27,11 @@
   2. From the browser console (F12 → Console), run:
        localStorage.removeItem('mijex.campaign.events.v1');
        localStorage.removeItem('mijex.campaign.kpis.v1');
+       localStorage.removeItem('mijex.campaign.migrations');
        location.reload();
   3. Clear this site's data in your browser settings
      (Site settings → Clear data / Cookies and site data).
-  After a reset, the four original campaign events and the
+  After a reset, the original campaign events and the
   placeholder KPI values are restored.
   ============================================================
 -->
@@ -149,9 +151,9 @@ body:not(.is-editing) .edit-only{display:none!important}
 
 /* status glyphs */
 .sglyph{width:11px;height:11px;transform:rotate(45deg);border-radius:2px;flex:none;display:inline-block}
-.sglyph.planned{border:1.6px solid var(--planned);background:transparent}
-.sglyph.published{border:1.6px solid var(--published);background:linear-gradient(135deg,var(--published) 50%,transparent 50%)}
-.sglyph.completed{border:1.6px solid var(--completed);background:var(--completed)}
+.sglyph.planned{border:1.6px solid var(--gc,var(--planned));background:transparent}
+.sglyph.published{border:1.6px solid var(--gc,var(--published));background:linear-gradient(135deg,var(--gc,var(--published)) 50%,transparent 50%)}
+.sglyph.completed{border:1.6px solid var(--gc,var(--completed));background:var(--gc,var(--completed))}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;gap:8px;align-items:center}
 
@@ -191,20 +193,17 @@ body:not(.is-editing) .edit-only{display:none!important}
 .tl-today-tag{position:absolute;transform:translateX(-50%);padding:2px 9px;border-radius:99px;background:var(--burgundy);color:#FBEBD0;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;pointer-events:none;box-shadow:0 4px 10px -4px rgba(106,30,45,.6)}
 .tl-stem{position:absolute;width:1px;transform:translateX(-.5px);background:linear-gradient(180deg,var(--line-2),var(--gold-line));pointer-events:none}
 .tl-marker{position:absolute;width:26px;height:26px;transform:translate(-50%,-50%);display:grid;place-items:center;cursor:pointer;z-index:2}
-.tl-marker::before{content:"";width:15px;height:15px;transform:rotate(45deg);border-radius:3px;background:var(--paper);border:2px solid var(--planned);box-shadow:0 0 0 4px var(--paper);transition:transform .25s var(--ease),box-shadow .25s}
-.tl-marker[data-status="published"]::before{border-color:var(--published);background:linear-gradient(135deg,var(--published) 50%,var(--paper) 50%)}
-.tl-marker[data-status="completed"]::before{border-color:var(--completed);background:var(--completed)}
+.tl-marker::before{content:"";width:15px;height:15px;transform:rotate(45deg);border-radius:3px;background:var(--paper);border:2px solid var(--c);box-shadow:0 0 0 4px var(--paper);transition:transform .25s var(--ease),box-shadow .25s}
+.tl-marker[data-status="published"]::before{background:linear-gradient(135deg,var(--c) 50%,var(--paper) 50%)}
+.tl-marker[data-status="completed"]::before{background:var(--c)}
 .tl-marker:hover::before,.tl-marker.active::before{transform:rotate(45deg) scale(1.25);box-shadow:0 0 0 4px var(--paper),0 0 0 7px rgba(212,178,106,.35)}
 .tl-label{position:absolute;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 12px 6px 14px;line-height:1.2;text-align:left;border-radius:12px;border:1px solid var(--line);background:#FFFEFB;box-shadow:0 1px 2px rgba(34,31,29,.05),0 8px 18px -12px rgba(34,31,29,.3);cursor:pointer;overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;z-index:1}
-.tl-label::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--planned)}
-.tl-label[data-status="planned"]{border-style:dashed;border-color:#CFC4B4;background:#FFFDF9}
-.tl-label[data-status="published"]::before{background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep))}
-.tl-label[data-status="completed"]::before{background:var(--burgundy)}
+.tl-label{--gc:var(--c);background:linear-gradient(90deg,color-mix(in srgb,var(--c) 9%,#FFFEFB),#FFFEFB 70%)}
+.tl-label::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.tl-label[data-status="planned"]{border-style:dashed;border-color:color-mix(in srgb,var(--c) 45%,#D6C4A2)}
 .tl-label:hover,.tl-label.active{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 2px 4px rgba(34,31,29,.06),0 14px 26px -14px rgba(34,31,29,.45);z-index:4}
 .tl-label:focus-visible{outline:2px solid var(--gold);outline-offset:2px;z-index:4}
-.tl-l-date{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep)}
-.tl-label[data-status="completed"] .tl-l-date{color:var(--burgundy)}
-.tl-label[data-status="planned"] .tl-l-date{color:var(--planned)}
+.tl-l-date{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c);white-space:nowrap}
 .tl-l-title{font-family:var(--serif);font-size:16.5px;font-weight:600;color:var(--charcoal);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tl-l-chan{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tl-label.flash{animation:flash 1.6s var(--ease)}
@@ -219,20 +218,40 @@ body:not(.is-editing) .edit-only{display:none!important}
 .tl-hint span{display:inline-flex;align-items:center;gap:6px}
 kbd{font-family:var(--sans);font-size:11px;padding:1px 6px;border-radius:5px;border:1px solid var(--line-2);background:#fff;box-shadow:0 1px 0 var(--line-2)}
 
+/* ---------- Activity colours & ranges ---------- */
+.tl-range{position:absolute;height:8px;transform:translateY(-50%);border-radius:99px;background:var(--c);box-shadow:0 0 0 3px var(--paper);cursor:pointer;z-index:1;transition:height .2s}
+.tl-range[data-status="planned"]{background:repeating-linear-gradient(135deg,var(--c) 0 5px,color-mix(in srgb,var(--c) 30%,#fff) 5px 10px)}
+.tl-range[data-status="published"]{background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 45%,#fff) 50%)}
+.tl-range:hover,.tl-range.active{height:12px}
+.cdot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;display:inline-block}
+.cat-row{margin-bottom:12px}
+.chip.cat[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.chip.cat[aria-pressed="true"] .cdot{background:#fff}
+.cat-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.04em;white-space:nowrap;color:var(--c);background:color-mix(in srgb,var(--c) 9%,#fff);border:1px solid color-mix(in srgb,var(--c) 35%,#fff)}
+.cat-tag .cdot{width:8px;height:8px}
+.legend{--gc:var(--charcoal)}
+.range-key{width:26px;height:6px;border-radius:99px;background:var(--charcoal);display:inline-block}
+.status-opt.cat input:checked+span{background:var(--c);border-color:var(--c);color:#fff}
+.status-opt.cat input:checked+span .cdot{background:#fff}
+.pop-tags{display:flex;flex-wrap:wrap;gap:6px}
+.popover .pop-body{border-top:3px solid var(--c,var(--gold))}
+.mini-h{margin:18px 0 4px;font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.mix-list.two{grid-template-columns:1fr 1fr;column-gap:22px}
+
 /* ---------- Agenda ---------- */
 .agenda-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:34px 0 14px;padding-top:24px;border-top:1px solid var(--line)}
 .agenda-head h3{margin:0;font-family:var(--serif);font-weight:500;font-size:26px}
 .agenda-head p{margin:0;color:var(--muted);font-size:13.5px}
 .agenda{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.ag-item{display:grid;grid-template-columns:76px 1fr auto;gap:18px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:#FFFEFB;transition:border-color .2s,box-shadow .2s}
-.ag-item:hover{border-color:var(--line-2);box-shadow:0 10px 24px -18px rgba(34,31,29,.4)}
+.ag-item{display:grid;grid-template-columns:76px 1fr auto;gap:18px;align-items:center;padding:16px 18px 16px 22px;border:1px solid var(--line);border-radius:16px;background:#FFFEFB;box-shadow:inset 4px 0 0 var(--c,var(--line-2));transition:border-color .2s,box-shadow .2s}
+.ag-item:hover{border-color:var(--line-2);box-shadow:inset 4px 0 0 var(--c,var(--line-2)),0 10px 24px -18px rgba(34,31,29,.4)}
 .ag-item[data-status="planned"]{border-style:dashed}
 .ag-date{text-align:center;padding:8px 0;border-radius:12px;background:linear-gradient(180deg,#FBF4E6,#F5EAD5);border:1px solid var(--line)}
 .ag-date .d{display:block;font-family:var(--serif);font-size:32px;line-height:1;color:var(--charcoal);font-weight:500}
-.ag-date .m{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-top:3px}
+.ag-date .m{display:block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--c,var(--gold-deep));margin-top:3px}
+.ag-date .r{display:block;font-size:11px;font-weight:700;color:var(--c);margin-top:2px;white-space:nowrap}
+.ag-item .ag-date{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 6%,#FFFDF8),color-mix(in srgb,var(--c) 13%,#FBF4E6));border-color:color-mix(in srgb,var(--c) 22%,#E7DCC8)}
 .ag-date .w{display:block;font-size:11px;color:var(--muted)}
-.ag-item[data-status="completed"] .ag-date{background:linear-gradient(180deg,#F7ECEC,#F1E0E1);border-color:#E6CDD0}
-.ag-item[data-status="completed"] .ag-date .m{color:var(--burgundy)}
 .ag-top{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
 .ag-top h4{margin:0;font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.15;color:var(--charcoal)}
 .ag-chan{margin:4px 0 0;font-size:13px;color:var(--gold-deep);font-weight:600;display:flex;align-items:center;gap:6px}
@@ -330,7 +349,7 @@ dialog[open]{animation:dlg .22s var(--ease)}
 .dlg-body{padding:20px 26px;display:grid;gap:16px}
 .dlg-foot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:16px 26px 22px;border-top:1px solid var(--line)}
 .field{display:grid;gap:6px}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 label,.lbl{font-size:13px;font-weight:700;color:var(--charcoal);letter-spacing:.02em}
 .req{color:var(--burgundy)}
 .opt{font-weight:500;color:var(--muted)}
@@ -467,6 +486,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       </div>
     </div>
 
+    <div class="ctrl-group cat-row" role="group" aria-label="Filter events by activity type" id="catGroup"></div>
     <div class="tl-controls">
       <div class="ctrl-group" role="group" aria-label="Filter events by status" id="filterGroup"></div>
       <div class="ctrl-group">
@@ -501,10 +521,12 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <span><kbd>←</kbd><kbd>→</kbd> move between events · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close</span>
     </div>
 
-    <div class="legend" style="margin-top:14px" aria-label="Status legend">
-      <span><i class="sglyph planned"></i>Planned — dashed card, hollow marker</span>
-      <span><i class="sglyph published"></i>Published — gold</span>
-      <span><i class="sglyph completed"></i>Completed — burgundy</span>
+    <div class="legend" style="margin-top:14px" aria-label="Legend">
+      <span>Colour = activity type · fill = status:</span>
+      <span><i class="sglyph planned"></i>Planned (hollow, dashed card)</span>
+      <span><i class="sglyph published"></i>Published (half)</span>
+      <span><i class="sglyph completed"></i>Completed (solid)</span>
+      <span><i class="range-key"></i>Bar = runs over several days</span>
     </div>
 
     <div class="agenda-head">
@@ -537,10 +559,13 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
         <div class="cmp" id="cmpList"></div>
       </div>
       <div class="sub-panel">
-        <h3>Content status</h3>
-        <p>Share of timeline events by status.</p>
+        <h3>Content mix</h3>
+        <p>How timeline events split by status and by activity type.</p>
         <div class="mix-bar" id="mixBar" role="img" aria-label="Event status mix"></div>
         <ul class="mix-list" id="mixList"></ul>
+        <h4 class="mini-h">By activity</h4>
+        <div class="mix-bar" id="catBar" role="img" aria-label="Events by activity type"></div>
+        <ul class="mix-list two" id="catList"></ul>
         <div class="next-up" id="nextUp"></div>
       </div>
     </div>
@@ -559,7 +584,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     <div class="pop-media" id="popMedia" hidden><img id="popImg" alt=""></div>
     <div class="pop-body">
       <div class="pop-top">
-        <span class="pill" id="popStatus"></span>
+        <div class="pop-tags"><span class="cat-tag" id="popCat"></span><span class="pill" id="popStatus"></span></div>
         <button class="btn btn-ghost icon-btn pop-close" type="button" id="popClose" aria-label="Close details">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
@@ -567,8 +592,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <h3 class="pop-title" id="popTitle" tabindex="-1"></h3>
       <p class="pop-desc" id="popDesc"></p>
       <dl class="pop-meta">
+        <dt>Activity</dt><dd id="popCatText"></dd>
         <dt>Channel</dt><dd id="popChannel"></dd>
         <dt>Status</dt><dd id="popStatusText"></dd>
+        <dt>Duration</dt><dd id="popDur"></dd>
       </dl>
       <div class="pop-actions edit-only">
         <button class="btn btn-sm" type="button" id="popEdit">Edit</button>
@@ -594,22 +621,34 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
         <input type="text" id="fTitle" name="title" maxlength="80" autocomplete="off" aria-describedby="eTitle" placeholder="e.g. Exhibitor spotlight reel">
         <span class="err" id="eTitle"></span>
       </div>
+      <fieldset class="field" style="border:0;padding:0;margin:0">
+        <legend class="lbl" style="margin-bottom:6px">Activity type <span class="req">*</span></legend>
+        <div class="status-opts" id="catOpts"></div>
+        <span class="err" id="eCat"></span>
+      </fieldset>
       <div class="field-row">
         <div class="field">
-          <label for="fDate">Date <span class="req">*</span></label>
+          <label for="fDate">Start date <span class="req">*</span></label>
           <input type="date" id="fDate" name="date" min="2026-10-01" max="2026-12-07" aria-describedby="eDate">
           <span class="err" id="eDate"></span>
         </div>
         <div class="field">
-          <label for="fChannel">Channel or platform <span class="req">*</span></label>
-          <input type="text" id="fChannel" name="channel" list="channelList" maxlength="60" autocomplete="off" aria-describedby="eChannel" placeholder="e.g. Instagram">
-          <datalist id="channelList">
-            <option value="Instagram"><option value="Instagram Reels"><option value="Instagram Stories"><option value="Insta News (paid)">
-            <option value="Facebook"><option value="LinkedIn"><option value="YouTube"><option value="TikTok"><option value="X (Twitter)">
-            <option value="Snapchat"><option value="Website"><option value="Email newsletter"><option value="Print"><option value="Outdoor / billboard"><option value="Radio">
-          </datalist>
-          <span class="err" id="eChannel"></span>
+          <label for="fEnd">End date <span class="opt">(optional)</span></label>
+          <input type="date" id="fEnd" name="endDate" min="2026-10-01" max="2026-12-07" aria-describedby="hEnd eEnd">
+          <span class="help" id="hEnd">For activities that run several days. Leave empty for a single day.</span>
+          <span class="err" id="eEnd"></span>
         </div>
+      </div>
+      <div class="field">
+        <label for="fChannel">Channel or platform <span class="req">*</span></label>
+        <input type="text" id="fChannel" name="channel" list="channelList" maxlength="60" autocomplete="off" aria-describedby="eChannel" placeholder="e.g. Instagram, Radio, Digital billboard">
+        <datalist id="channelList">
+          <option value="Instagram"><option value="Instagram Reels"><option value="Instagram Stories"><option value="Insta News (paid)">
+          <option value="Facebook"><option value="LinkedIn"><option value="YouTube"><option value="TikTok"><option value="X (Twitter)">
+          <option value="Snapchat"><option value="Website"><option value="Email newsletter"><option value="Radio"><option value="Influencer collaboration">
+          <option value="Digital billboard screen"><option value="Outdoor / billboard"><option value="Print"><option value="Brand identity">
+        </datalist>
+        <span class="err" id="eChannel"></span>
       </div>
       <fieldset class="field" style="border:0;padding:0;margin:0" aria-describedby="eStatus">
         <legend class="lbl" style="margin-bottom:6px">Status <span class="req">*</span></legend>
@@ -715,9 +754,17 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   var DAY_MS = 86400000;
   var DAYS = 68; // 1 Oct – 7 Dec 2026 inclusive
   var MIN_DATE = '2026-10-01', MAX_DATE = '2026-12-07';
-  var KEYS = { events: 'mijex.campaign.events.v1', kpis: 'mijex.campaign.kpis.v1' };
+  var KEYS = { events: 'mijex.campaign.events.v1', kpis: 'mijex.campaign.kpis.v1', migr: 'mijex.campaign.migrations' };
   var STATUS_LABEL = { planned: 'Planned', published: 'Published', completed: 'Completed' };
   var STATUSES = ['planned', 'published', 'completed'];
+  var CATS = [
+    { id: 'social', label: 'Social media', color: '#2F5E95' },
+    { id: 'radio', label: 'Radio', color: '#C46A1C' },
+    { id: 'influencers', label: 'Influencers', color: '#84489A' },
+    { id: 'branding', label: 'Branding', color: '#2F7D5D' },
+    { id: 'screen', label: 'Screen', color: '#B8324A' }
+  ];
+  var CAT = {}; CATS.forEach(function (c) { CAT[c.id] = c; });
   var MONTHS = [{ name: 'October', start: 0, days: 31 }, { name: 'November', start: 31, days: 30 }, { name: 'December', start: 61, days: 7 }];
   var PAD = 56, LABEL_H = 66, LANE_H = 76, MONTH_H = 52, GAP_UP = 30, GAP_DOWN = 48;
   var MIN_DAYW = 10, MAX_DAYW = 80;
@@ -743,8 +790,11 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     { id: 'ev-partners-welcome', title: 'Welcome post for the partners', date: '2026-10-08', channel: 'Instagram & LinkedIn', status: 'published',
       description: 'Post welcoming and thanking the exhibition partners and sponsors, tagging each partner to extend reach to their audiences.', image: '' },
     { id: 'ev-insta-news-ad', title: 'Paid ad through Insta News', date: '2026-10-25', channel: 'Insta News (paid)', status: 'completed',
-      description: 'Sponsored placement through Insta News to amplify awareness of the exhibition beyond the organic audience.', image: '' }
+      description: 'Sponsored placement through Insta News to amplify awareness of the exhibition beyond the organic audience.', image: '' },
+    { id: 'ev-billboard-screen', title: 'Billboard screen', date: '2026-11-24', endDate: '2026-12-03', channel: 'Digital billboard screen', status: 'planned', category: 'screen',
+      description: 'Exhibition artwork running on a digital billboard screen through the final days before the exhibition.', image: '' }
   ];
+  DEFAULT_EVENTS.forEach(function (e) { if (!e.category) e.category = 'social'; if (!e.endDate) e.endDate = ''; });
   var DEFAULT_KPIS = [
     { id: 'k-followers', label: 'Follower growth', value: 1250, target: 5000, format: 'number', prefix: '+', note: 'New followers across campaign channels', placeholder: true },
     { id: 'k-views', label: 'Views', value: 48000, target: 250000, format: 'number', prefix: '', note: 'Total video and post views', placeholder: true },
@@ -788,6 +838,12 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   function fmt(s, opts) { var p = s.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2])).toLocaleDateString('en-GB', Object.assign({ timeZone: 'UTC' }, opts)); }
   function fmtShort(s) { return fmt(s, { day: 'numeric', month: 'short' }); }
   function fmtLong(s) { return fmt(s, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+  function catOf(e) { return CAT[e.category] || CAT.social; }
+  function endOf(e) { return e.endDate || e.date; }
+  function spanDays(e) { return dayIndex(endOf(e)) - dayIndex(e.date) + 1; }
+  function fmtRangeShort(e) { return e.endDate ? fmtShort(e.date) + ' \u2013 ' + fmtShort(e.endDate) : fmtShort(e.date); }
+  function fmtRangeLong(e) { return e.endDate ? fmt(e.date, { weekday: 'short', day: 'numeric', month: 'long' }) + ' \u2013 ' + fmt(e.endDate, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : fmtLong(e.date); }
+  function catTag(e) { var c = catOf(e); return h('span', { class: 'cat-tag', style: '--c:' + c.color }, h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label); }
   function todayIndex() { var n = new Date(); return Math.round((Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) - START_UTC) / DAY_MS); }
   function isSafeImage(u) {
     if (!u) return false;
@@ -834,18 +890,34 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     kpis: loadList(KEYS.kpis, DEFAULT_KPIS, validKpi),
     editing: false,
     filter: 'all',
+    cat: 'all',
     dayW: 24,
     zoomMode: 'fit',
     cursor: null,
     labelW: 168
   };
-  state.events.forEach(function (e) { e.description = e.description || ''; e.channel = e.channel || ''; e.image = e.image || ''; });
+  state.events.forEach(function (e) {
+    e.description = e.description || ''; e.channel = e.channel || ''; e.image = e.image || '';
+    if (!CAT[e.category]) e.category = 'social';
+    if (!e.endDate || !isValidISO(e.endDate) || e.endDate <= e.date || e.endDate > MAX_DATE) e.endDate = '';
+  });
+  // One-time upgrade: add the billboard screen run to plans saved before activity types existed
+  (function () {
+    try {
+      if (localStorage.getItem(KEYS.migr) === '2') return;
+      if (localStorage.getItem(KEYS.events) != null && !findEvent('ev-billboard-screen')) {
+        state.events.push(clone(DEFAULT_EVENTS.filter(function (e) { return e.id === 'ev-billboard-screen'; })[0]));
+        saveEvents();
+      }
+      localStorage.setItem(KEYS.migr, '2');
+    } catch (e) { }
+  })();
 
   function sortedEvents() {
     return state.events.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.title.localeCompare(b.title); });
   }
   function visibleEvents() {
-    return sortedEvents().filter(function (e) { return state.filter === 'all' || e.status === state.filter; });
+    return sortedEvents().filter(function (e) { return (state.filter === 'all' || e.status === state.filter) && (state.cat === 'all' || e.category === state.cat); });
   }
   function findEvent(id) { for (var i = 0; i < state.events.length; i++) if (state.events[i].id === id) return state.events[i]; return null; }
 
@@ -873,12 +945,14 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     evs.forEach(function (e) {
       var grp = byDay[e.date], k = grp.indexOf(e), spread = clamp(W * 0.55, 9, 16);
       var x = xOfIndex(dayIndex(e.date)) + (k - (grp.length - 1) / 2) * spread;
-      var left = clamp(x - LW / 2, 8, width - LW - 8);
+      var x2 = e.endDate ? xOfIndex(dayIndex(e.endDate)) : x;
+      var cx = e.endDate ? (x + x2) / 2 : x, cw = e.endDate ? Math.max(LW, x2 - x + 16) : LW;
+      var left = clamp(cx - cw / 2, 8, width - cw - 8);
       var si = -1;
       for (var i = 0; i < slots.length; i++) if (left >= ends[i] + 10) { si = i; break; }
       if (si < 0) { var m = Math.min.apply(null, ends); si = ends.indexOf(m); }
-      ends[si] = left + LW;
-      placed.push({ e: e, x: x, left: left, side: slots[si][0], lane: slots[si][1] });
+      ends[si] = left + cw;
+      placed.push({ e: e, x: x, x2: x2, cx: cx, w: cw, left: left, side: slots[si][0], lane: slots[si][1] });
     });
     var upL = 1, downL = 1;
     placed.forEach(function (p) { if (p.side === 'up') upL = Math.max(upL, p.lane + 1); else downL = Math.max(downL, p.lane + 1); });
@@ -919,23 +993,29 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     }
     // Events
     placed.forEach(function (p) {
-      var e = p.e, top;
+      var e = p.e, top, ct = catOf(e), c = ct.color;
       if (p.side === 'up') top = axisY - GAP_UP - p.lane * LANE_H - LABEL_H;
       else top = axisY + GAP_DOWN + p.lane * LANE_H;
       var stemTop = p.side === 'up' ? top + LABEL_H : axisY;
       var stemH = p.side === 'up' ? axisY - (top + LABEL_H) : top - axisY;
-      layout.xs[e.id] = p.x;
-      frag.append(h('div', { class: 'tl-stem', style: 'left:' + p.x + 'px;top:' + stemTop + 'px;height:' + stemH + 'px', 'aria-hidden': 'true' }));
-      frag.append(h('span', { class: 'tl-marker', 'data-id': e.id, 'data-status': e.status, style: 'left:' + p.x + 'px;top:' + axisY + 'px', 'aria-hidden': 'true' }));
+      var sx = clamp(p.cx, p.left + 12, p.left + p.w - 12);
+      layout.xs[e.id] = p.cx;
+      frag.append(h('div', { class: 'tl-stem', style: 'left:' + sx + 'px;top:' + stemTop + 'px;height:' + stemH + 'px', 'aria-hidden': 'true' }));
+      if (e.endDate) {
+        frag.append(h('span', { class: 'tl-range', 'data-id': e.id, 'data-status': e.status, style: '--c:' + c + ';left:' + p.x + 'px;width:' + (p.x2 - p.x) + 'px;top:' + axisY + 'px', 'aria-hidden': 'true' }));
+        frag.append(h('span', { class: 'tl-marker', 'data-id': e.id, 'data-status': e.status, style: '--c:' + c + ';left:' + p.x2 + 'px;top:' + axisY + 'px', 'aria-hidden': 'true' }));
+      }
+      frag.append(h('span', { class: 'tl-marker', 'data-id': e.id, 'data-status': e.status, style: '--c:' + c + ';left:' + p.x + 'px;top:' + axisY + 'px', 'aria-hidden': 'true' }));
+      var when = e.endDate ? fmtLong(e.date) + ' to ' + fmtLong(e.endDate) + ', ' + spanDays(e) + ' days' : fmtLong(e.date);
       var btn = h('button', {
         type: 'button', class: 'tl-label', 'data-id': e.id, 'data-status': e.status,
-        style: 'left:' + p.left + 'px;top:' + top + 'px;width:' + LW + 'px;height:' + LABEL_H + 'px',
+        style: '--c:' + c + ';left:' + p.left + 'px;top:' + top + 'px;width:' + p.w + 'px;height:' + LABEL_H + 'px',
         'aria-haspopup': 'dialog', 'aria-controls': 'popover', 'aria-expanded': 'false',
-        'aria-label': e.title + '. ' + fmtLong(e.date) + '. ' + STATUS_LABEL[e.status] + (e.channel ? '. ' + e.channel : '') + '. Press Enter for details.'
+        'aria-label': e.title + '. ' + ct.label + '. ' + when + '. ' + STATUS_LABEL[e.status] + (e.channel ? '. ' + e.channel : '') + '. Press Enter for details.'
       },
-        h('span', { class: 'tl-l-date' }, glyph(e.status), fmtShort(e.date)),
+        h('span', { class: 'tl-l-date' }, glyph(e.status), fmtRangeShort(e) + (e.endDate ? ' \u00b7 ' + spanDays(e) + 'd' : '')),
         h('span', { class: 'tl-l-title', text: e.title }),
-        e.channel ? h('span', { class: 'tl-l-chan', text: e.channel }) : null);
+        h('span', { class: 'tl-l-chan', text: ct.label + (e.channel ? ' \u00b7 ' + e.channel : '') }));
       frag.append(btn);
     });
     guide = h('div', { class: 'tl-guide', style: 'height:' + height + 'px', hidden: true }, h('span', { style: 'top:' + (MONTH_H - 20) + 'px' }));
@@ -950,13 +1030,13 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     var empty = $('tlEmpty');
     empty.textContent = '';
     if (!evs.length) {
-      var filtered = state.filter !== 'all' && state.events.length;
+      var filtered = isFiltered() && state.events.length;
       var card = h('div', { class: 'tl-empty-card' },
         gemIcon(30),
-        h('h3', { text: filtered ? 'No ' + STATUS_LABEL[state.filter].toLowerCase() + ' events' : 'No events yet' }),
+        h('h3', { text: filtered ? 'No matching events' : 'No events yet' }),
         h('p', { text: filtered ? 'Nothing matches this filter. Show all events or add a new one.' : 'Start building the campaign story \u2014 add the first event to the timeline.' }));
       var actions = h('div', { class: 'actions', style: 'justify-content:center' });
-      if (filtered) actions.append(h('button', { class: 'btn btn-sm', type: 'button', text: 'Show all events', onclick: function () { setFilter('all'); } }));
+      if (filtered) actions.append(h('button', { class: 'btn btn-sm', type: 'button', text: 'Show all events', onclick: function () { clearFilters(); } }));
       actions.append(h('button', { class: 'btn btn-sm btn-primary', type: 'button', text: 'Add Event', onclick: function () { startAdd(); } }));
       card.append(actions);
       empty.append(card);
@@ -1027,7 +1107,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     opts = opts || {};
     var x = layout.xs[id];
     if (x == null) {
-      if (state.filter !== 'all') { setFilter('all'); x = layout.xs[id]; }
+      if (isFiltered()) { clearFilters(); x = layout.xs[id]; }
       if (x == null) return;
     }
     state.cursor = id;
@@ -1070,7 +1150,11 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     var st = $('popStatus');
     st.className = 'pill ' + e.status; st.textContent = ''; st.append(glyph(e.status), STATUS_LABEL[e.status]);
     var pd = $('popDate'); pd.textContent = '';
-    pd.append(svgCal(), fmtLong(e.date));
+    pd.append(svgCal(), fmtRangeLong(e));
+    var ct = catOf(e); popEl.style.setProperty('--c', ct.color);
+    var pc = $('popCat'); pc.textContent = ''; pc.append(h('i', { class: 'cdot', 'aria-hidden': 'true' }), ct.label);
+    $('popCatText').textContent = ct.label;
+    var nd = spanDays(e); $('popDur').textContent = nd === 1 ? 'Single day' : nd + ' days';
     $('popTitle').textContent = e.title;
     var desc = $('popDesc');
     desc.textContent = e.description || 'No description added yet.';
@@ -1297,16 +1381,30 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   /* ===================== Filters ===================== */
   function renderFilters() {
     var g = $('filterGroup'); g.textContent = '';
+    g.append(h('span', { class: 'ctrl-label', 'aria-hidden': 'true', text: 'Status' }));
     var counts = { all: state.events.length, planned: 0, published: 0, completed: 0 };
     state.events.forEach(function (e) { counts[e.status]++; });
     ['all'].concat(STATUSES).forEach(function (k) {
       var b = h('button', { type: 'button', class: 'chip', 'aria-pressed': state.filter === k ? 'true' : 'false', onclick: function () { setFilter(k); } },
         k === 'all' ? null : glyph(k), k === 'all' ? 'All' : STATUS_LABEL[k], h('span', { class: 'count', text: counts[k] }));
-      b.setAttribute('aria-label', (k === 'all' ? 'All events' : STATUS_LABEL[k]) + ', ' + counts[k]);
+      b.setAttribute('aria-label', (k === 'all' ? 'All statuses' : STATUS_LABEL[k]) + ', ' + counts[k]);
       g.append(b);
     });
+    var cg = $('catGroup'); cg.textContent = '';
+    cg.append(h('span', { class: 'ctrl-label', 'aria-hidden': 'true', text: 'Activity' }));
+    var cc = {}; state.events.forEach(function (e) { cc[e.category] = (cc[e.category] || 0) + 1; });
+    cg.append(h('button', { type: 'button', class: 'chip', 'aria-pressed': state.cat === 'all' ? 'true' : 'false', onclick: function () { setCat('all'); }, 'aria-label': 'All activity types, ' + state.events.length },
+      'All', h('span', { class: 'count', text: state.events.length })));
+    CATS.forEach(function (c) {
+      cg.append(h('button', { type: 'button', class: 'chip cat', style: '--c:' + c.color, 'aria-pressed': state.cat === c.id ? 'true' : 'false', onclick: function () { setCat(c.id); }, 'aria-label': c.label + ', ' + (cc[c.id] || 0) },
+        h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label, h('span', { class: 'count', text: cc[c.id] || 0 })));
+    });
   }
-  function setFilter(k) { state.filter = k; closePopover(false); renderFilters(); renderTimeline(); renderAgenda(); }
+  function refreshFiltered() { closePopover(false); renderFilters(); renderTimeline(); renderAgenda(); }
+  function setFilter(k) { state.filter = k; refreshFiltered(); }
+  function setCat(k) { state.cat = (state.cat === k && k !== 'all') ? 'all' : k; refreshFiltered(); }
+  function isFiltered() { return state.filter !== 'all' || state.cat !== 'all'; }
+  function clearFilters() { state.filter = 'all'; state.cat = 'all'; refreshFiltered(); }
 
   /* ===================== Agenda list ===================== */
   function renderAgenda() {
@@ -1316,12 +1414,12 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       ? state.events.length + (state.events.length === 1 ? ' event' : ' events')
       : evs.length + ' of ' + state.events.length + ' events shown';
     if (!evs.length) {
-      var filtered = state.filter !== 'all' && state.events.length;
+      var filtered = isFiltered() && state.events.length;
       var li = h('li', { class: 'empty' }, gemIcon(32),
         h('h4', { text: filtered ? 'Nothing to show for this filter' : 'Your campaign timeline is empty' }),
         h('p', { text: filtered ? 'Try another status, or show all events.' : 'Add events such as posts, videos, ads and partner announcements.' }));
       var a = h('div', { class: 'actions', style: 'justify-content:center' });
-      if (filtered) a.append(h('button', { type: 'button', class: 'btn btn-sm', text: 'Show all events', onclick: function () { setFilter('all'); } }));
+      if (filtered) a.append(h('button', { type: 'button', class: 'btn btn-sm', text: 'Show all events', onclick: function () { clearFilters(); } }));
       a.append(h('button', { type: 'button', class: 'btn btn-sm btn-primary', text: 'Add Event', onclick: function () { startAdd(); } }));
       li.append(a);
       list.append(li); return;
@@ -1337,15 +1435,16 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
         h('button', { type: 'button', class: 'btn btn-sm', onclick: function () { goToEvent(e.id, { open: true, scrollPage: true }); }, 'aria-label': 'Show \u201c' + e.title + '\u201d on the timeline' }, 'View'),
         h('button', { type: 'button', class: 'btn btn-sm edit-only', onclick: function () { openEventForm(e); }, 'aria-label': 'Edit \u201c' + e.title + '\u201d' }, 'Edit'),
         h('button', { type: 'button', class: 'btn btn-sm btn-danger edit-only', onclick: function () { deleteEvent(e.id); }, 'aria-label': 'Delete \u201c' + e.title + '\u201d' }, 'Delete')));
-      list.append(h('li', { class: 'ag-item', 'data-status': e.status },
+      var chanText = [e.endDate ? fmtRangeShort(e) + ' (' + spanDays(e) + ' days)' : '', e.channel].filter(Boolean).join(' \u00b7 ');
+      list.append(h('li', { class: 'ag-item', 'data-status': e.status, style: '--c:' + catOf(e).color },
         h('div', { class: 'ag-date', 'aria-hidden': 'true' },
           h('span', { class: 'd', text: fmt(e.date, { day: 'numeric' }) }),
           h('span', { class: 'm', text: fmt(e.date, { month: 'short' }) }),
-          h('span', { class: 'w', text: fmt(e.date, { weekday: 'short' }) })),
+          e.endDate ? h('span', { class: 'r', text: '\u2192 ' + fmtShort(e.endDate) }) : h('span', { class: 'w', text: fmt(e.date, { weekday: 'short' }) })),
         h('div', { class: 'ag-body' },
-          h('span', { class: 'sr-only', text: fmtLong(e.date) + '. ' }),
-          h('div', { class: 'ag-top' }, h('h4', { text: e.title }), pill(e.status)),
-          e.channel ? h('p', { class: 'ag-chan', text: e.channel }) : null,
+          h('span', { class: 'sr-only', text: fmtRangeLong(e) + '. ' }),
+          h('div', { class: 'ag-top' }, h('h4', { text: e.title }), catTag(e), pill(e.status)),
+          chanText ? h('p', { class: 'ag-chan', text: chanText }) : null,
           e.description ? h('p', { class: 'ag-desc', text: e.description }) : null),
         side));
     });
@@ -1375,11 +1474,19 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       list.append(h('li', null, glyph(s), STATUS_LABEL[s], h('b', { text: c[s] })));
     });
     bar.setAttribute('aria-label', total ? 'Events by status: ' + STATUSES.map(function (s) { return c[s] + ' ' + STATUS_LABEL[s].toLowerCase(); }).join(', ') : 'No events yet');
-    var next = sortedEvents().filter(function (e) { return dayIndex(e.date) >= ti && e.status === 'planned'; })[0]
-      || sortedEvents().filter(function (e) { return dayIndex(e.date) >= ti; })[0];
+    var cbar = $('catBar'), clist = $('catList'); cbar.textContent = ''; clist.textContent = '';
+    var ccount = {}; state.events.forEach(function (e) { ccount[e.category] = (ccount[e.category] || 0) + 1; });
+    CATS.forEach(function (ct) {
+      var n = ccount[ct.id] || 0;
+      if (total && n) cbar.append(h('span', { style: 'width:' + (n / total * 100) + '%;background:' + ct.color }));
+      clist.append(h('li', { style: '--c:' + ct.color }, h('i', { class: 'cdot', 'aria-hidden': 'true' }), ct.label, h('b', { text: n })));
+    });
+    cbar.setAttribute('aria-label', total ? 'Events by activity: ' + CATS.map(function (ct) { return (ccount[ct.id] || 0) + ' ' + ct.label; }).join(', ') : 'No events yet');
+    var next = sortedEvents().filter(function (e) { return dayIndex(endOf(e)) >= ti && e.status === 'planned'; })[0]
+      || sortedEvents().filter(function (e) { return dayIndex(endOf(e)) >= ti; })[0];
     var nu = $('nextUp'); nu.textContent = '';
     if (next) {
-      nu.append('Next on the timeline', h('b', { text: next.title }), fmtLong(next.date) + (next.channel ? ' \u00b7 ' + next.channel : ''));
+      nu.append('Next on the timeline', h('b', { text: next.title }), fmtRangeLong(next) + (next.channel ? ' \u00b7 ' + next.channel : ''));
       nu.style.cursor = 'pointer';
       nu.onclick = function () { goToEvent(next.id, { open: true, scrollPage: true }); };
     } else {
@@ -1501,7 +1608,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     confirmAction('Reset all data?', 'This removes every change saved in this browser and restores the original four campaign events and the placeholder metrics.', 'Reset everything').then(function (ok) {
       if (!ok) return;
       try { localStorage.removeItem(KEYS.events); localStorage.removeItem(KEYS.kpis); } catch (e) { }
-      state.events = clone(DEFAULT_EVENTS); state.kpis = clone(DEFAULT_KPIS); state.filter = 'all';
+      state.events = clone(DEFAULT_EVENTS); state.kpis = clone(DEFAULT_KPIS); state.filter = 'all'; state.cat = 'all';
       closePopover(false); renderAll();
       toast('All data has been reset to the original campaign plan.');
     });
@@ -1548,6 +1655,11 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   /* ===================== Event form ===================== */
   var editingEventId = null;
   var evForm = $('eventForm');
+  CATS.forEach(function (c) {
+    $('catOpts').append(h('label', { class: 'status-opt cat', style: '--c:' + c.color },
+      h('input', { type: 'radio', name: 'category', value: c.id }), h('span', null, h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label)));
+  });
+  $('catOpts').addEventListener('change', function () { setErr(null, 'eCat', ''); });
   function openEventForm(e, presetDate) {
     closePopover(false);
     editingEventId = e ? e.id : null;
@@ -1556,11 +1668,14 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     $('evDelete').hidden = !e;
     $('fTitle').value = e ? e.title : '';
     $('fDate').value = e ? e.date : (presetDate || '');
+    $('fEnd').value = e ? (e.endDate || '') : '';
+    $('fEnd').min = $('fDate').value || MIN_DATE;
+    evForm.querySelectorAll('input[name=category]').forEach(function (r) { r.checked = e ? r.value === e.category : (state.cat !== 'all' && r.value === state.cat); });
     $('fChannel').value = e ? e.channel : '';
     $('fDesc').value = e ? e.description : '';
     $('fImage').value = e && e.image ? (e.image.indexOf('data:') === 0 && e.image.length > 300 ? e.image : e.image) : '';
     evForm.querySelectorAll('input[name=status]').forEach(function (r) { r.checked = e ? r.value === e.status : r.value === 'planned'; });
-    [['fTitle', 'eTitle'], ['fDate', 'eDate'], ['fChannel', 'eChannel'], [null, 'eStatus'], ['fDesc', 'eDesc'], ['fImage', 'eImage']].forEach(function (p) { setErr(p[0], p[1], ''); });
+    [['fTitle', 'eTitle'], [null, 'eCat'], ['fDate', 'eDate'], ['fEnd', 'eEnd'], ['fChannel', 'eChannel'], [null, 'eStatus'], ['fDesc', 'eDesc'], ['fImage', 'eImage']].forEach(function (p) { setErr(p[0], p[1], ''); });
     $('evAlert').hidden = true;
     updateDescCount(); updateImgPreview();
     openDialog($('eventDialog'));
@@ -1570,7 +1685,8 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   $('fDesc').addEventListener('input', function () { updateDescCount(); if ($('fDesc').value.trim()) setErr('fDesc', 'eDesc', ''); });
   $('fTitle').addEventListener('input', function () { if ($('fTitle').value.trim()) setErr('fTitle', 'eTitle', ''); });
   $('fChannel').addEventListener('input', function () { if ($('fChannel').value.trim()) setErr('fChannel', 'eChannel', ''); });
-  $('fDate').addEventListener('change', function () { var v = $('fDate').value; if (v && v >= MIN_DATE && v <= MAX_DATE) setErr('fDate', 'eDate', ''); });
+  $('fDate').addEventListener('change', function () { var v = $('fDate').value; if (v && v >= MIN_DATE && v <= MAX_DATE) setErr('fDate', 'eDate', ''); $('fEnd').min = v || MIN_DATE; });
+  $('fEnd').addEventListener('change', function () { setErr('fEnd', 'eEnd', ''); });
   evForm.querySelectorAll('input[name=status]').forEach(function (r) { r.addEventListener('change', function () { setErr(null, 'eStatus', ''); }); });
   var imgT = 0;
   $('fImage').addEventListener('input', function () { clearTimeout(imgT); imgT = setTimeout(updateImgPreview, 300); });
@@ -1589,13 +1705,20 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     var title = $('fTitle').value.trim(), date = $('fDate').value.trim(), channel = $('fChannel').value.trim(),
       desc = $('fDesc').value.trim(), image = $('fImage').value.trim();
     var statusEl = evForm.querySelector('input[name=status]:checked'), status = statusEl ? statusEl.value : '';
+    var catEl = evForm.querySelector('input[name=category]:checked'), category = catEl ? catEl.value : '';
+    var endDate = $('fEnd').value.trim();
     var errs = [];
-    function check(cond, inputId, errId, msg) { if (cond) { setErr(inputId, errId, msg); errs.push(inputId || 'statusFirst'); } else setErr(inputId, errId, ''); }
+    function check(cond, inputId, errId, msg) { if (cond) { setErr(inputId, errId, msg); errs.push(inputId || (errId === 'eCat' ? 'catFirst' : 'statusFirst')); } else setErr(inputId, errId, ''); }
     check(!title, 'fTitle', 'eTitle', 'Please give the event a title.');
     if (title && title.length > 80) check(true, 'fTitle', 'eTitle', 'Keep the title under 80 characters.');
+    check(!CAT[category], null, 'eCat', 'Choose an activity type: Social media, Radio, Influencers, Branding or Screen.');
     if (!date) check(true, 'fDate', 'eDate', 'Please choose a date.');
     else if (!isValidISO(date)) check(true, 'fDate', 'eDate', 'That isn\u2019t a valid date. Use the date picker or the format YYYY-MM-DD.');
     else check(date < MIN_DATE || date > MAX_DATE, 'fDate', 'eDate', 'Choose a date within the campaign: 1 October \u2013 7 December 2026.');
+    if (!endDate) setErr('fEnd', 'eEnd', '');
+    else if (!isValidISO(endDate)) check(true, 'fEnd', 'eEnd', 'That isn\u2019t a valid end date.');
+    else if (endDate < MIN_DATE || endDate > MAX_DATE) check(true, 'fEnd', 'eEnd', 'The end date must fall within 1 October \u2013 7 December 2026.');
+    else check(isValidISO(date) && endDate < date, 'fEnd', 'eEnd', 'The end date can\u2019t be before the start date.');
     check(!channel, 'fChannel', 'eChannel', 'Add the channel or platform, e.g. Instagram.');
     check(STATUSES.indexOf(status) < 0, null, 'eStatus', 'Choose a status: Planned, Published or Completed.');
     check(!desc, 'fDesc', 'eDesc', 'Add a short description of this activity.');
@@ -1604,18 +1727,20 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       var a = $('evAlert');
       a.textContent = errs.length === 1 ? 'Please fix the highlighted field.' : 'Please fix the ' + errs.length + ' highlighted fields.';
       a.hidden = false;
-      var first = errs[0] === 'statusFirst' ? evForm.querySelector('input[name=status]') : $(errs[0]);
+      var first = errs[0] === 'statusFirst' ? evForm.querySelector('input[name=status]') : errs[0] === 'catFirst' ? evForm.querySelector('input[name=category]') : $(errs[0]);
       if (first) first.focus();
       return;
     }
     $('evAlert').hidden = true;
-    var data = { title: title, date: date, channel: channel, status: status, description: desc, image: image };
+    if (endDate === date) endDate = '';
+    var data = { title: title, date: date, endDate: endDate, category: category, channel: channel, status: status, description: desc, image: image };
     var id;
     if (editingEventId) { var e = findEvent(editingEventId); if (e) Object.assign(e, data); id = editingEventId; }
     else { id = uid('ev'); state.events.push(Object.assign({ id: id }, data)); }
     var wasEdit = !!editingEventId;
     saveEvents();
     if (state.filter !== 'all' && state.filter !== status) state.filter = 'all';
+    if (state.cat !== 'all' && state.cat !== category) state.cat = 'all';
     renderAll();
     closeDialog($('eventDialog'));
     toast(wasEdit ? 'Event updated.' : 'Event added to the timeline.');
@@ -1629,7 +1754,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
 
   function deleteEvent(id) {
     var e = findEvent(id); if (!e) return;
-    confirmAction('Delete this event?', '\u201c' + e.title + '\u201d on ' + fmtLong(e.date) + ' will be removed from the timeline.', 'Delete event').then(function (ok) {
+    confirmAction('Delete this event?', '\u201c' + e.title + '\u201d (' + fmtRangeLong(e) + ') will be removed from the timeline.', 'Delete event').then(function (ok) {
       if (!ok) return;
       var idx = state.events.indexOf(e);
       state.events.splice(idx, 1);
