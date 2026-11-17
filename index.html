@@ -794,6 +794,32 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     { id: 'ev-billboard-screen', title: 'Billboard screen', date: '2026-11-24', endDate: '2026-12-03', channel: 'Digital billboard screen', status: 'planned', category: 'screen',
       description: 'Exhibition artwork running on a digital billboard screen through the final days before the exhibition.', image: '' }
   ];
+  // Influencer plan (MIJEX 2026, 15th edition)
+  function inf(id, date, endDate, title, channel, status, description) {
+    return { id: 'inf-' + id, title: title, date: date, endDate: endDate, category: 'influencers', channel: channel, status: status, description: description, image: '' };
+  }
+  var INFLUENCER_EVENTS = [
+    inf('malik-story-1', '2026-10-23', '', '@malik_alqarni — story', 'Instagram Story', 'completed', 'Story with a call to visit MIJEX.'),
+    inf('insta-om-post', '2026-10-25', '', '@Insta_om — post', 'Instagram post', 'completed', 'Post with a call to visit MIJEX.'),
+    inf('majeedd-story', '2026-10-27', '', '@majeedd_79 — story', 'Instagram Story', 'completed', 'Story with a call to visit MIJEX.'),
+    inf('nooooorrrs-reel', '2026-11-10', '', '@nooooorrrs — reel', 'Instagram Reel', 'completed', 'Reel with a call to visit MIJEX.'),
+    inf('eva-story-1', '2026-11-11', '', '@eva_alhoooti6 — story', 'Instagram Story', 'completed', 'Story with a call to visit MIJEX.'),
+    inf('5osh-visit-1', '2026-11-16', '2026-11-26', '@5osh.fkra — first visit', 'Instagram', 'planned', 'Gold street challenge in Muscat; the prize is collected at MIJEX.'),
+    inf('bridal', '2026-11-18', '2026-11-28', 'Omani fashion & bridal influencers', 'Instagram', 'planned', '2–3 Omani fashion and bridal influencers. Wedding gold prep · “What I’ll buy at MIJEX”.'),
+    inf('malik-story-2', '2026-11-25', '', '@malik_alqarni — second story', 'Instagram Story', 'planned', 'Luxury watches in Halls 4 & 5. Date is approximate (around 25 Nov).'),
+    inf('eva-countdown', '2026-11-27', '2026-12-02', '@eva_alhoooti6 — countdown stories', 'Snapchat & Instagram', 'planned', 'Countdown stories in the days before the opening.'),
+    inf('sara-teaser', '2026-12-01', '', '@sara_speak.jewellery — teaser', 'Instagram', 'planned', 'Teaser · “See you in Muscat”.'),
+    inf('opening-news', '2026-12-02', '2026-12-03', '@Insta_om + news accounts — opening news', 'Instagram news accounts', 'planned', 'Opening news: 15th edition, tax exemption, free entry.'),
+    inf('influencer-hour', '2026-12-03', '', 'Influencer hour before doors open', 'Live from the venue', 'planned', '12–2 pm on opening day. All influencers plus smaller creators, live from the opening.'),
+    inf('eva-daily', '2026-12-03', '2026-12-07', '@eva_alhoooti6 — daily coverage', 'Snapchat & Instagram', 'planned', 'Thu opening · Fri family · Sat weddings · Sun watches & diamonds · Mon last day.'),
+    inf('sara-daily', '2026-12-03', '2026-12-07', '@sara_speak.jewellery — daily coverage', 'Instagram', 'planned', 'How to buy diamonds and gold · the best pieces at the show.'),
+    inf('5osh-visit-2', '2026-12-03', '2026-12-07', '@5osh.fkra — second visit', 'Instagram', 'planned', 'Prize handover plus an in-hall challenge. Exact day during the show to be confirmed.'),
+    inf('last-chance', '2026-12-06', '2026-12-07', 'Eva + a news account — last chance', 'Snapchat & Instagram', 'planned', '“Last chance to buy tax-free.”')
+  ];
+  INFLUENCER_EVENTS.forEach(function (e) {
+    e.description += ' Key message in every post: free entry · no customs duty or VAT · 3–7 Dec, 2–10 pm (Fri 4–10 pm) · #زينةوخزينة';
+    DEFAULT_EVENTS.push(e);
+  });
   DEFAULT_EVENTS.forEach(function (e) { if (!e.category) e.category = 'social'; if (!e.endDate) e.endDate = ''; });
   var DEFAULT_KPIS = [
     { id: 'k-followers', label: 'Follower growth', value: 1250, target: 5000, format: 'number', prefix: '+', note: 'New followers across campaign channels', placeholder: true },
@@ -904,12 +930,16 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   // One-time upgrade: add the billboard screen run to plans saved before activity types existed
   (function () {
     try {
-      if (localStorage.getItem(KEYS.migr) === '2') return;
-      if (localStorage.getItem(KEYS.events) != null && !findEvent('ev-billboard-screen')) {
-        state.events.push(clone(DEFAULT_EVENTS.filter(function (e) { return e.id === 'ev-billboard-screen'; })[0]));
-        saveEvents();
+      var done = localStorage.getItem(KEYS.migr) || '';
+      if (done === '3') return;
+      if (localStorage.getItem(KEYS.events) != null) {
+        var add = [];
+        if (done !== '2' && !findEvent('ev-billboard-screen')) add.push('ev-billboard-screen');
+        INFLUENCER_EVENTS.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); });
+        add.forEach(function (id) { state.events.push(clone(DEFAULT_EVENTS.filter(function (e) { return e.id === id; })[0])); });
+        if (add.length) saveEvents();
       }
-      localStorage.setItem(KEYS.migr, '2');
+      localStorage.setItem(KEYS.migr, '3');
     } catch (e) { }
   })();
 
@@ -950,6 +980,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       var left = clamp(cx - cw / 2, 8, width - cw - 8);
       var si = -1;
       for (var i = 0; i < slots.length; i++) if (left >= ends[i] + 10) { si = i; break; }
+      if (si < 0 && slots.length < 20) { var nl = Math.floor(slots.length / 2); slots.push(['up', nl], ['down', nl]); ends.push(-Infinity, -Infinity); si = slots.length - 2; }
       if (si < 0) { var m = Math.min.apply(null, ends); si = ends.indexOf(m); }
       ends[si] = left + cw;
       placed.push({ e: e, x: x, x2: x2, cx: cx, w: cw, left: left, side: slots[si][0], lane: slots[si][1] });
