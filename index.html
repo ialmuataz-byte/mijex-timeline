@@ -676,7 +676,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
           <option value="Instagram"><option value="Instagram Reels"><option value="Instagram Stories"><option value="Insta News (paid)">
           <option value="Facebook"><option value="LinkedIn"><option value="YouTube"><option value="TikTok"><option value="X (Twitter)">
           <option value="Snapchat"><option value="Website"><option value="Email newsletter"><option value="Radio"><option value="Influencer collaboration">
-          <option value="Digital billboard screen"><option value="Outdoor / billboard"><option value="Print"><option value="Brand identity"><option value="Press release"><option value="Media coverage"><option value="Press conference"><option value="Partner channels"><option value="Sponsor announcement">
+          <option value="Digital billboard screen"><option value="Outdoor / billboard"><option value="Print"><option value="Brand identity"><option value="Press release"><option value="Media coverage"><option value="Press conference"><option value="Partner channels"><option value="Sponsor announcement"><option value="Photo coverage"><option value="Video coverage">
         </datalist>
         <span class="err" id="eChannel"></span>
       </div>
@@ -794,7 +794,8 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     { id: 'branding', label: 'Branding', color: '#2F7D5D' },
     { id: 'screen', label: 'Screen', color: '#B8324A' },
     { id: 'pr', label: 'PR', color: '#0F7A8A' },
-    { id: 'partners', label: 'Partners', color: '#3E3A36' }
+    { id: 'partners', label: 'Partners', color: '#3E3A36' },
+    { id: 'photovideo', label: 'Photo & Video', color: '#A82D74' }
   ];
   var CAT = {}; CATS.forEach(function (c) { CAT[c.id] = c; });
   var MONTHS = [{ name: 'October', start: 0, days: 31 }, { name: 'November', start: 31, days: 30 }, { name: 'December', start: 61, days: 7 }];
@@ -873,6 +874,14 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     cp('countdown-story', '2026-11-29', 'Exhibition countdown', 'Instagram Story', 'Countdown story to the exhibition.')
   ];
   CONTENT_EVENTS.forEach(function (e) { DEFAULT_EVENTS.push(e); });
+  // Photo & video coverage during the exhibition (3 coverage days)
+  var COVERAGE_EVENTS = [
+    { id: 'pv-daily-reels', title: 'Daily reels — event coverage', date: '2026-12-03', endDate: '2026-12-05', category: 'photovideo', channel: 'Instagram Reels', status: 'planned', image: '',
+      description: '2 reels per day × 3 days = 6 reels, filmed and edited during the exhibition.' },
+    { id: 'pv-photography', title: 'Event photography', date: '2026-12-03', endDate: '2026-12-05', category: 'photovideo', channel: 'Photo coverage', status: 'planned', image: '',
+      description: '20 edited photos per day × 3 days = 60 photos from the exhibition.' }
+  ];
+  COVERAGE_EVENTS.forEach(function (e) { DEFAULT_EVENTS.push(e); });
   DEFAULT_EVENTS.forEach(function (e) { if (!e.category) e.category = 'social'; if (!e.endDate) e.endDate = ''; });
   var DEFAULT_KPIS = [
     { id: 'k-followers', label: 'Follower growth', value: 1250, target: 5000, format: 'number', prefix: '+', note: 'New followers across campaign channels', placeholder: true },
@@ -987,17 +996,19 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   // One-time upgrade: add the billboard screen run to plans saved before activity types existed
   (function () {
     try {
-      var done = localStorage.getItem(KEYS.migr) || '';
-      if (done === '4') return;
+      var done = Number(localStorage.getItem(KEYS.migr)) || 1;
+      if (done >= 5) return;
       if (localStorage.getItem(KEYS.events) != null) {
         var add = [];
-        if (done !== '2' && done !== '3' && !findEvent('ev-billboard-screen')) add.push('ev-billboard-screen');
-        if (done !== '3') INFLUENCER_EVENTS.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); });
-        CONTENT_EVENTS.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); });
+        function addMissing(list) { list.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); }); }
+        if (done < 2 && !findEvent('ev-billboard-screen')) add.push('ev-billboard-screen');
+        if (done < 3) addMissing(INFLUENCER_EVENTS);
+        if (done < 4) addMissing(CONTENT_EVENTS);
+        if (done < 5) addMissing(COVERAGE_EVENTS);
         add.forEach(function (id) { state.events.push(clone(DEFAULT_EVENTS.filter(function (e) { return e.id === id; })[0])); });
         if (add.length) saveEvents();
       }
-      localStorage.setItem(KEYS.migr, '4');
+      localStorage.setItem(KEYS.migr, '5');
     } catch (e) { }
   })();
 
@@ -1812,7 +1823,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     function check(cond, inputId, errId, msg) { if (cond) { setErr(inputId, errId, msg); errs.push(inputId || (errId === 'eCat' ? 'catFirst' : 'statusFirst')); } else setErr(inputId, errId, ''); }
     check(!title, 'fTitle', 'eTitle', 'Please give the event a title.');
     if (title && title.length > 80) check(true, 'fTitle', 'eTitle', 'Keep the title under 80 characters.');
-    check(!CAT[category], null, 'eCat', 'Choose an activity type: Social media, Radio, Influencers, Branding, Screen, PR or Partners.');
+    check(!CAT[category], null, 'eCat', 'Choose an activity type: Social media, Radio, Influencers, Branding, Screen, PR, Partners or Photo & Video.');
     if (!date) check(true, 'fDate', 'eDate', 'Please choose a date.');
     else if (!isValidISO(date)) check(true, 'fDate', 'eDate', 'That isn\u2019t a valid date. Use the date picker or the format YYYY-MM-DD.');
     else check(date < MIN_DATE || date > MAX_DATE, 'fDate', 'eDate', 'Choose a date within the campaign: 1 October \u2013 7 December 2026.');
