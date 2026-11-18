@@ -279,7 +279,8 @@ kbd{font-family:var(--sans);font-size:11px;padding:1px 6px;border-radius:5px;bor
 .pop-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pop-date{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;font-weight:600;color:var(--gold-deep)}
 .pop-title{margin:4px 0 0;font-family:var(--serif);font-size:25px;font-weight:600;line-height:1.1;color:var(--charcoal)}
-.pop-desc{margin:10px 0 0;color:var(--ink);font-size:14px;white-space:pre-line}
+.pop-desc{margin:10px 0 0;color:var(--ink);font-size:14px;white-space:pre-line;overflow-wrap:anywhere}
+.ag-desc{overflow-wrap:anywhere}
 .pop-desc.muted{color:var(--muted);font-style:italic}
 .pop-meta{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:13px}
 .pop-meta dt{color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-size:11px;padding-top:2px}
@@ -820,6 +821,27 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     e.description += ' Key message in every post: free entry · no customs duty or VAT · 3–7 Dec, 2–10 pm (Fri 4–10 pm) · #زينةوخزينة';
     DEFAULT_EVENTS.push(e);
   });
+  // Social media content plan, 17-29 Nov (from "MIJEX - Content plan")
+  function cp(id, date, title, channel, description) {
+    return { id: 'cp-' + id, title: title, date: date, endDate: '', category: 'social', channel: channel, status: 'planned', description: description, image: '' };
+  }
+  var CONTENT_EVENTS = [
+    cp('reminder', '2026-11-17', 'Exhibition reminder', 'Instagram post', 'Design in the exhibition identity with the key details: venue, dates and times. Bilingual caption (Arabic + English, men’s elegance angle): 3–7 December 2026 · Oman Convention & Exhibition Centre · #زينة_وخزينة'),
+    cp('oman-symbols', '2026-11-18', 'Jewellery from Oman’s symbols', 'Instagram Reel', 'Short video: quick scenes of Omani nature and jewellery whose shapes are inspired by it. Cover: “من رموز هويتنا... إلى تفاصيل تزيّن الحاضر.” Reference: https://www.instagram.com/reel/DcgO9MBtMtL/'),
+    cp('patterns', '2026-11-19', 'Jewellery patterns & shapes', 'Instagram Reel', 'Animated video of the patterns used in jewellery — inspired by nature, geometry and the arts — ending with the exhibition dates and venue. Reference: https://www.instagram.com/reel/DdD_HEcAF56/'),
+    cp('mens', '2026-11-20', 'Men’s jewellery', 'Instagram carousel', 'Carousel on men’s jewellery and watches: the Omani khanjar, silver rings, watches and wedding bands. Cover: “للمجوهرات لغة أخرى في أناقة الرجل”.'),
+    cp('national-day', '2026-11-20', 'National Day', 'Instagram post or Story', 'Oman National Day greeting — post or story.'),
+    cp('jewellery-types', '2026-11-21', 'Types of jewellery', 'Instagram Story', 'Story showing the types of jewellery: necklace, ring, earrings, bracelet. Ends with the question: “وأنتِ ايش قطعتك المفضلة؟” (What’s your favourite piece?)'),
+    cp('interactive', '2026-11-22', 'Interactive post', 'Instagram post', 'Interactive post. Reference: https://www.instagram.com/p/DfPtgEtjHXo/'),
+    cp('reel-23', '2026-11-23', 'Reel', 'Instagram Reel', 'Reel. Reference: https://pin.it/1f8lIOFUr'),
+    cp('voiceover', '2026-11-24', 'Reel with English voice-over', 'Instagram Reel', 'Reel with an English voice-over and Arabic subtitles. Reference: https://www.instagram.com/reels/DeedAZ4ylGA/'),
+    cp('reel-25', '2026-11-25', 'Reel (topic to be confirmed)', 'Instagram Reel', 'Topic not set yet in the content plan. References: https://www.instagram.com/reels/DfUopmWM4Y7/ and https://www.instagram.com/reels/DfHl8P7oslm/'),
+    cp('game', '2026-11-26', 'Game post: pick your stone', 'Instagram post', 'Game-style post: “Pick your stone and hear its message” — or pick your favourite piece (ring, necklace, pearl). Reference: https://www.instagram.com/reels/DfHsmcWoi4i/'),
+    cp('nature', '2026-11-27', 'Jewellery from nature', 'Instagram Reel', 'Motion graphics on jewellery inspired by nature. Cover text still to be written. Reference: https://www.instagram.com/reel/DXE9ctTjHYI/'),
+    cp('countdown-reel', '2026-11-28', 'Exhibition countdown', 'Instagram Reel', 'Countdown to the exhibition. Caption: “Just a few days to go until an event that brings together refined taste, distinctive designs, and the brilliance of fine jewellery.” Reference: https://www.instagram.com/reel/DbXqo5CRfSp/'),
+    cp('countdown-story', '2026-11-29', 'Exhibition countdown', 'Instagram Story', 'Countdown story to the exhibition.')
+  ];
+  CONTENT_EVENTS.forEach(function (e) { DEFAULT_EVENTS.push(e); });
   DEFAULT_EVENTS.forEach(function (e) { if (!e.category) e.category = 'social'; if (!e.endDate) e.endDate = ''; });
   var DEFAULT_KPIS = [
     { id: 'k-followers', label: 'Follower growth', value: 1250, target: 5000, format: 'number', prefix: '+', note: 'New followers across campaign channels', placeholder: true },
@@ -931,15 +953,16 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   (function () {
     try {
       var done = localStorage.getItem(KEYS.migr) || '';
-      if (done === '3') return;
+      if (done === '4') return;
       if (localStorage.getItem(KEYS.events) != null) {
         var add = [];
-        if (done !== '2' && !findEvent('ev-billboard-screen')) add.push('ev-billboard-screen');
-        INFLUENCER_EVENTS.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); });
+        if (done !== '2' && done !== '3' && !findEvent('ev-billboard-screen')) add.push('ev-billboard-screen');
+        if (done !== '3') INFLUENCER_EVENTS.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); });
+        CONTENT_EVENTS.forEach(function (e) { if (!findEvent(e.id)) add.push(e.id); });
         add.forEach(function (id) { state.events.push(clone(DEFAULT_EVENTS.filter(function (e) { return e.id === id; })[0])); });
         if (add.length) saveEvents();
       }
-      localStorage.setItem(KEYS.migr, '3');
+      localStorage.setItem(KEYS.migr, '4');
     } catch (e) { }
   })();
 
