@@ -661,7 +661,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
           <option value="Instagram"><option value="Instagram Reels"><option value="Instagram Stories"><option value="Insta News (paid)">
           <option value="Facebook"><option value="LinkedIn"><option value="YouTube"><option value="TikTok"><option value="X (Twitter)">
           <option value="Snapchat"><option value="Website"><option value="Email newsletter"><option value="Radio"><option value="Influencer collaboration">
-          <option value="Digital billboard screen"><option value="Outdoor / billboard"><option value="Print"><option value="Brand identity"><option value="Press release"><option value="Media coverage"><option value="Press conference">
+          <option value="Digital billboard screen"><option value="Outdoor / billboard"><option value="Print"><option value="Brand identity"><option value="Press release"><option value="Media coverage"><option value="Press conference"><option value="Partner channels"><option value="Sponsor announcement">
         </datalist>
         <span class="err" id="eChannel"></span>
       </div>
@@ -778,7 +778,8 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     { id: 'influencers', label: 'Influencers', color: '#84489A' },
     { id: 'branding', label: 'Branding', color: '#2F7D5D' },
     { id: 'screen', label: 'Screen', color: '#B8324A' },
-    { id: 'pr', label: 'PR', color: '#0F7A8A' }
+    { id: 'pr', label: 'PR', color: '#0F7A8A' },
+    { id: 'partners', label: 'Partners', color: '#3E3A36' }
   ];
   var CAT = {}; CATS.forEach(function (c) { CAT[c.id] = c; });
   var MONTHS = [{ name: 'October', start: 0, days: 31 }, { name: 'November', start: 31, days: 30 }, { name: 'December', start: 61, days: 7 }];
@@ -1795,7 +1796,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     function check(cond, inputId, errId, msg) { if (cond) { setErr(inputId, errId, msg); errs.push(inputId || (errId === 'eCat' ? 'catFirst' : 'statusFirst')); } else setErr(inputId, errId, ''); }
     check(!title, 'fTitle', 'eTitle', 'Please give the event a title.');
     if (title && title.length > 80) check(true, 'fTitle', 'eTitle', 'Keep the title under 80 characters.');
-    check(!CAT[category], null, 'eCat', 'Choose an activity type: Social media, Radio, Influencers, Branding, Screen or PR.');
+    check(!CAT[category], null, 'eCat', 'Choose an activity type: Social media, Radio, Influencers, Branding, Screen, PR or Partners.');
     if (!date) check(true, 'fDate', 'eDate', 'Please choose a date.');
     else if (!isValidISO(date)) check(true, 'fDate', 'eDate', 'That isn\u2019t a valid date. Use the date picker or the format YYYY-MM-DD.');
     else check(date < MIN_DATE || date > MAX_DATE, 'fDate', 'eDate', 'Choose a date within the campaign: 1 October \u2013 7 December 2026.');
