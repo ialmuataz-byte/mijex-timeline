@@ -243,6 +243,20 @@ kbd{font-family:var(--sans);font-size:11px;padding:1px 6px;border-radius:5px;bor
 .mini-h{margin:18px 0 4px;font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .mix-list.two{grid-template-columns:1fr 1fr;column-gap:22px}
 
+/* ---------- Moving events between activity types ---------- */
+.pop-meta .cat-select{width:auto;min-height:32px;padding:3px 30px 3px 12px;border-radius:999px;font-size:13px;font-weight:700;color:var(--c,var(--ink));border:1.5px solid var(--c,var(--line-2));background-color:#fff;cursor:pointer}
+.pop-meta dd.has-select{margin:-4px 0}
+body.dragging-event #catGroup{position:sticky;top:8px;z-index:30;padding:8px 10px;margin-left:-10px;margin-right:-10px;border-radius:14px;background:rgba(255,253,249,.96);box-shadow:var(--shadow)}
+body.dragging-event .chip.cat{outline:2px dashed var(--c);outline-offset:2px}
+.chip.cat.drop-over{background:var(--c);border-color:var(--c);color:#fff;transform:scale(1.07)}
+.chip.cat.drop-over .cdot{background:#fff}
+.drag-tip{display:none;font-size:12.5px;font-weight:600;color:var(--gold-deep);margin-left:6px}
+body.dragging-event .drag-tip{display:inline}
+.tl-label[draggable="true"],.ag-item[draggable="true"]{-webkit-user-drag:element}
+.ag-item[draggable="true"]{cursor:grab}
+.ag-item[draggable="true"] button{cursor:pointer}
+.tl-label.drag-src,.ag-item.drag-src{opacity:.45}
+
 /* ---------- Agenda ---------- */
 .agenda-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:34px 0 14px;padding-top:24px;border-top:1px solid var(--line)}
 .agenda-head h3{margin:0;font-family:var(--serif);font-weight:500;font-size:26px}
@@ -532,6 +546,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     <div class="tl-hint" aria-hidden="true">
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 13V5a2 2 0 014 0v6m0 0V4a2 2 0 014 0v7m0-2a2 2 0 014 0v5a7 7 0 01-14 0v-1l-1.5-3a1.6 1.6 0 012.8-1.5L8 13"/></svg>Hover or tap an event for details</span>
       <span>Drag or swipe sideways to explore</span>
+      <span>Drag an event onto an activity button to move it</span>
       <span><kbd>←</kbd><kbd>→</kbd> move between events · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close</span>
     </div>
 
@@ -606,7 +621,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <h3 class="pop-title" id="popTitle" tabindex="-1"></h3>
       <p class="pop-desc" id="popDesc"></p>
       <dl class="pop-meta">
-        <dt>Activity</dt><dd id="popCatText"></dd>
+        <dt>Activity</dt><dd class="has-select"><label class="sr-only" for="popCatSelect">Move to activity type</label><select id="popCatSelect" class="cat-select" title="Move this event to another activity type"></select></dd>
         <dt>Channel</dt><dd id="popChannel"></dd>
         <dt>Status</dt><dd id="popStatusText"></dd>
         <dt>Duration</dt><dd id="popDur"></dd>
@@ -1082,7 +1097,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       frag.append(h('span', { class: 'tl-marker', 'data-id': e.id, 'data-status': e.status, style: '--c:' + c + ';left:' + p.x + 'px;top:' + axisY + 'px', 'aria-hidden': 'true' }));
       var when = e.endDate ? fmtLong(e.date) + ' to ' + fmtLong(e.endDate) + ', ' + spanDays(e) + ' days' : fmtLong(e.date);
       var btn = h('button', {
-        type: 'button', class: 'tl-label', 'data-id': e.id, 'data-status': e.status,
+        type: 'button', class: 'tl-label', 'data-id': e.id, 'data-status': e.status, draggable: 'true',
         style: '--c:' + c + ';left:' + p.left + 'px;top:' + top + 'px;width:' + p.w + 'px;height:' + LABEL_H + 'px',
         'aria-haspopup': 'dialog', 'aria-controls': 'popover', 'aria-expanded': 'false',
         'aria-label': e.title + '. ' + ct.label + '. ' + when + '. ' + STATUS_LABEL[e.status] + (e.channel ? '. ' + e.channel : '') + '. Press Enter for details.'
@@ -1227,7 +1242,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     pd.append(svgCal(), fmtRangeLong(e));
     var ct = catOf(e); popEl.style.setProperty('--c', ct.color);
     var pc = $('popCat'); pc.textContent = ''; pc.append(h('i', { class: 'cdot', 'aria-hidden': 'true' }), ct.label);
-    $('popCatText').textContent = ct.label;
+    $('popCatSelect').value = ct.id;
     var nd = spanDays(e); $('popDur').textContent = nd === 1 ? 'Single day' : nd + ' days';
     $('popTitle').textContent = e.title;
     var desc = $('popDesc');
@@ -1477,11 +1492,12 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     });
     var cg = $('catGroup'); cg.textContent = '';
     cg.append(h('span', { class: 'ctrl-label', 'aria-hidden': 'true', text: 'Activity' }));
+    cg.append(h('span', { class: 'drag-tip', 'aria-hidden': 'true', text: 'Drop on a type \u2192' }));
     var cc = {}; state.events.forEach(function (e) { cc[e.category] = (cc[e.category] || 0) + 1; });
     cg.append(h('button', { type: 'button', class: 'chip', 'aria-pressed': state.cat === 'all' ? 'true' : 'false', onclick: function () { setCat('all'); }, 'aria-label': 'All activity types, ' + state.events.length },
       'All', h('span', { class: 'count', text: state.events.length })));
     CATS.forEach(function (c) {
-      cg.append(h('button', { type: 'button', class: 'chip cat', style: '--c:' + c.color, 'aria-pressed': state.cat === c.id ? 'true' : 'false', onclick: function () { setCat(c.id); }, 'aria-label': c.label + ', ' + (cc[c.id] || 0) },
+      cg.append(h('button', { type: 'button', class: 'chip cat', 'data-cat': c.id, style: '--c:' + c.color, 'aria-pressed': state.cat === c.id ? 'true' : 'false', onclick: function () { setCat(c.id); }, 'aria-label': c.label + ', ' + (cc[c.id] || 0) },
         h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label, h('span', { class: 'count', text: cc[c.id] || 0 })));
     });
   }
@@ -1521,7 +1537,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
         h('button', { type: 'button', class: 'btn btn-sm edit-only', onclick: function () { openEventForm(e); }, 'aria-label': 'Edit \u201c' + e.title + '\u201d' }, 'Edit'),
         h('button', { type: 'button', class: 'btn btn-sm btn-danger edit-only', onclick: function () { deleteEvent(e.id); }, 'aria-label': 'Delete \u201c' + e.title + '\u201d' }, 'Delete')));
       var chanText = [e.endDate ? fmtRangeShort(e) + ' (' + spanDays(e) + ' days)' : '', e.channel].filter(Boolean).join(' \u00b7 ');
-      list.append(h('li', { class: 'ag-item', 'data-status': e.status, style: '--c:' + catOf(e).color },
+      list.append(h('li', { class: 'ag-item', 'data-status': e.status, style: '--c:' + catOf(e).color, draggable: 'true', 'data-drag-id': e.id, title: 'Drag onto an activity button to move it' },
         h('div', { class: 'ag-date', 'aria-hidden': 'true' },
           h('span', { class: 'd', text: fmt(e.date, { day: 'numeric' }) }),
           h('span', { class: 'm', text: fmt(e.date, { month: 'short' }) }),
@@ -1899,6 +1915,64 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       toast('\u201c' + k.label + '\u201d removed.', { action: { label: 'Undo', fn: function () { state.kpis.splice(Math.min(idx, state.kpis.length), 0, k); saveKpis(); renderKpis(); } } });
     });
   }
+
+  /* ===================== Move between activity types ===================== */
+  CATS.forEach(function (c) { $('popCatSelect').append(h('option', { value: c.id, text: c.label })); });
+  $('popCatSelect').addEventListener('change', function () { if (pop.id) moveEvent(pop.id, this.value); });
+
+  function moveEvent(id, cat, isUndo) {
+    var e = findEvent(id);
+    if (!e || !CAT[cat] || e.category === cat) return;
+    var from = e.category;
+    e.category = cat;
+    saveEvents();
+    renderFilters(); renderTimeline(); renderAgenda(); renderStats();
+    if (pop.id === id) { fillPopover(e); positionPopover(); }
+    if (isUndo) { toast('Move undone — “' + e.title + '” is back in ' + CAT[cat].label + '.'); return; }
+    var msg = '“' + e.title + '” moved from ' + CAT[from].label + ' to ' + CAT[cat].label + '.';
+    if (state.cat !== 'all' && state.cat !== cat) msg += ' It’s hidden by the current filter.';
+    toast(msg, { action: { label: 'Undo', fn: function () { moveEvent(id, from, true); } } });
+  }
+
+  // Drag an event card (timeline or list) onto an activity button
+  var dragId = null, dragSrc = null;
+  document.addEventListener('dragstart', function (ev) {
+    var src = ev.target && ev.target.closest && ev.target.closest('.tl-label[data-id], .ag-item[data-drag-id]');
+    if (!src) return;
+    dragId = src.getAttribute('data-id') || src.getAttribute('data-drag-id');
+    dragSrc = src;
+    try { ev.dataTransfer.setData('text/plain', dragId); ev.dataTransfer.effectAllowed = 'move'; } catch (x) { }
+    closePopover(false);
+    clearTimeout(pop.showT);
+    if (guide) guide.hidden = true;
+    requestAnimationFrame(function () { document.body.classList.add('dragging-event'); if (dragSrc) dragSrc.classList.add('drag-src'); });
+  });
+  document.addEventListener('dragend', function () {
+    document.body.classList.remove('dragging-event');
+    if (dragSrc) dragSrc.classList.remove('drag-src');
+    document.querySelectorAll('.drop-over').forEach(function (n) { n.classList.remove('drop-over'); });
+    dragId = null; dragSrc = null;
+  });
+  var catGroupEl = $('catGroup');
+  catGroupEl.addEventListener('dragover', function (ev) {
+    var chip = dragId && ev.target.closest('.chip.cat');
+    if (!chip) return;
+    ev.preventDefault();
+    try { ev.dataTransfer.dropEffect = 'move'; } catch (x) { }
+    catGroupEl.querySelectorAll('.drop-over').forEach(function (n) { if (n !== chip) n.classList.remove('drop-over'); });
+    chip.classList.add('drop-over');
+  });
+  catGroupEl.addEventListener('dragleave', function (ev) {
+    var chip = ev.target.closest('.chip.cat');
+    if (chip && !chip.contains(ev.relatedTarget)) chip.classList.remove('drop-over');
+  });
+  catGroupEl.addEventListener('drop', function (ev) {
+    var chip = ev.target.closest('.chip.cat');
+    if (!chip || !dragId) return;
+    ev.preventDefault();
+    var id = dragId;
+    moveEvent(id, chip.getAttribute('data-cat'));
+  });
 
   /* ===================== Toast ===================== */
   function toast(msg, opts) {
