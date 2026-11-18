@@ -41,7 +41,7 @@
   --gold:#B08A3E; --gold-bright:#D4B26A; --gold-deep:#8A6726; --gold-soft:rgba(176,138,62,.13); --gold-line:rgba(176,138,62,.38);
   --burgundy:#6A1E2D; --burgundy-2:#8B2B3F; --burgundy-soft:rgba(106,30,45,.08);
   --charcoal:#221F1D; --ink:#2B2724; --muted:#6C635A; --line:#E7DCC8; --line-2:#D6C4A2;
-  --planned:#5E5751; --published:#A47F33; --completed:#6A1E2D;
+  --planned:#5E5751; --ongoing:#A47F33; --completed:#6A1E2D;
   --danger:#A3283A; --ok:#2F6B4F;
   --serif:"Cormorant Garamond","Cormorant","Playfair Display","Bodoni 72","Didot","Iowan Old Style",Georgia,"Times New Roman",serif;
   --sans:"Avenir Next","Avenir","Segoe UI","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
@@ -152,14 +152,14 @@ body:not(.is-editing) .edit-only{display:none!important}
 /* status glyphs */
 .sglyph{width:11px;height:11px;transform:rotate(45deg);border-radius:2px;flex:none;display:inline-block}
 .sglyph.planned{border:1.6px solid var(--gc,var(--planned));background:transparent}
-.sglyph.published{border:1.6px solid var(--gc,var(--published));background:linear-gradient(135deg,var(--gc,var(--published)) 50%,transparent 50%)}
+.sglyph.ongoing{border:1.6px solid var(--gc,var(--ongoing));background:linear-gradient(135deg,var(--gc,var(--ongoing)) 50%,transparent 50%)}
 .sglyph.completed{border:1.6px solid var(--gc,var(--completed));background:var(--gc,var(--completed))}
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;gap:8px;align-items:center}
 
 .pill{display:inline-flex;align-items:center;gap:7px;padding:3px 10px 3px 9px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 .pill.planned{background:rgba(94,87,81,.09);color:var(--planned);border:1px dashed rgba(94,87,81,.5)}
-.pill.published{background:rgba(176,138,62,.14);color:#7C5E1F;border:1px solid rgba(176,138,62,.45)}
+.pill.ongoing{background:rgba(176,138,62,.14);color:#7C5E1F;border:1px solid rgba(176,138,62,.45)}
 .pill.completed{background:var(--burgundy-soft);color:var(--burgundy);border:1px solid rgba(106,30,45,.35)}
 .pill .sglyph{width:8px;height:8px}
 
@@ -194,7 +194,7 @@ body:not(.is-editing) .edit-only{display:none!important}
 .tl-stem{position:absolute;width:1px;transform:translateX(-.5px);background:linear-gradient(180deg,var(--line-2),var(--gold-line));pointer-events:none}
 .tl-marker{position:absolute;width:26px;height:26px;transform:translate(-50%,-50%);display:grid;place-items:center;cursor:pointer;z-index:2}
 .tl-marker::before{content:"";width:15px;height:15px;transform:rotate(45deg);border-radius:3px;background:var(--paper);border:2px solid var(--c);box-shadow:0 0 0 4px var(--paper);transition:transform .25s var(--ease),box-shadow .25s}
-.tl-marker[data-status="published"]::before{background:linear-gradient(135deg,var(--c) 50%,var(--paper) 50%)}
+.tl-marker[data-status="ongoing"]::before{background:linear-gradient(135deg,var(--c) 50%,var(--paper) 50%)}
 .tl-marker[data-status="completed"]::before{background:var(--c)}
 .tl-marker:hover::before,.tl-marker.active::before{transform:rotate(45deg) scale(1.25);box-shadow:0 0 0 4px var(--paper),0 0 0 7px rgba(212,178,106,.35)}
 .tl-label{position:absolute;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 12px 6px 14px;line-height:1.2;text-align:left;border-radius:12px;border:1px solid var(--line);background:#FFFEFB;box-shadow:0 1px 2px rgba(34,31,29,.05),0 8px 18px -12px rgba(34,31,29,.3);cursor:pointer;overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s,border-color .2s;z-index:1}
@@ -221,7 +221,7 @@ kbd{font-family:var(--sans);font-size:11px;padding:1px 6px;border-radius:5px;bor
 /* ---------- Activity colours & ranges ---------- */
 .tl-range{position:absolute;height:8px;transform:translateY(-50%);border-radius:99px;background:var(--c);box-shadow:0 0 0 3px var(--paper);cursor:pointer;z-index:1;transition:height .2s}
 .tl-range[data-status="planned"]{background:repeating-linear-gradient(135deg,var(--c) 0 5px,color-mix(in srgb,var(--c) 30%,#fff) 5px 10px)}
-.tl-range[data-status="published"]{background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 45%,#fff) 50%)}
+.tl-range[data-status="ongoing"]{background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 45%,#fff) 50%)}
 .tl-range:hover,.tl-range.active{height:12px}
 .cdot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;display:inline-block}
 .cat-row{margin-bottom:12px}
@@ -330,7 +330,7 @@ kbd{font-family:var(--sans);font-size:11px;padding:1px 6px;border-radius:5px;bor
 .mix-bar{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--ivory-2);margin:6px 0 14px}
 .mix-bar span{height:100%;transition:width .8s var(--ease)}
 .mix-bar .planned{background:repeating-linear-gradient(45deg,#8C847C 0 4px,#A39B92 4px 8px)}
-.mix-bar .published{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+.mix-bar .ongoing{background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
 .mix-bar .completed{background:var(--burgundy)}
 .mix-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px}
 .mix-list li{display:flex;align-items:center;gap:10px}
@@ -369,7 +369,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);bo
 .status-opt span{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line-2);background:#fff;font-size:13.5px;font-weight:600;transition:all .2s}
 .status-opt input:checked+span{border-color:var(--charcoal);background:var(--charcoal);color:#F6E7C6}
 .status-opt input:checked+span .sglyph{border-color:var(--gold-bright)}
-.status-opt input:checked+span .sglyph.completed,.status-opt input:checked+span .sglyph.published{background:var(--gold-bright)}
+.status-opt input:checked+span .sglyph.completed,.status-opt input:checked+span .sglyph.ongoing{background:var(--gold-bright)}
 .status-opt input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
 .img-preview{display:flex;gap:12px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;background:#FFFCF6}
 .img-preview[hidden]{display:none}
@@ -454,7 +454,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <div class="hs-grid">
         <div class="hs-cell"><b id="hsTotal">0</b><span>Events</span></div>
         <div class="hs-cell"><b id="hsPlanned">0</b><span><i class="sglyph planned" style="border-color:#CFC4B4"></i>Planned</span></div>
-        <div class="hs-cell"><b id="hsPublished">0</b><span><i class="sglyph published" style="border-color:#D4B26A;background:linear-gradient(135deg,#D4B26A 50%,transparent 50%)"></i>Published</span></div>
+        <div class="hs-cell"><b id="hsOngoing">0</b><span><i class="sglyph ongoing" style="border-color:#D4B26A;background:linear-gradient(135deg,#D4B26A 50%,transparent 50%)"></i>Ongoing</span></div>
         <div class="hs-cell"><b id="hsCompleted">0</b><span><i class="sglyph completed" style="border-color:#C96B7C;background:#C96B7C"></i>Completed</span></div>
       </div>
     </div>
@@ -525,7 +525,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     <div class="legend" style="margin-top:14px" aria-label="Legend">
       <span>Colour = activity type · fill = status:</span>
       <span><i class="sglyph planned"></i>Planned (hollow, dashed card)</span>
-      <span><i class="sglyph published"></i>Published (half)</span>
+      <span><i class="sglyph ongoing"></i>Ongoing (half)</span>
       <span><i class="sglyph completed"></i>Completed (solid)</span>
       <span><i class="range-key"></i>Bar = runs over several days</span>
     </div>
@@ -655,7 +655,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
         <legend class="lbl" style="margin-bottom:6px">Status <span class="req">*</span></legend>
         <div class="status-opts">
           <label class="status-opt"><input type="radio" name="status" value="planned"><span><i class="sglyph planned"></i>Planned</span></label>
-          <label class="status-opt"><input type="radio" name="status" value="published"><span><i class="sglyph published"></i>Published</span></label>
+          <label class="status-opt"><input type="radio" name="status" value="ongoing"><span><i class="sglyph ongoing"></i>Ongoing</span></label>
           <label class="status-opt"><input type="radio" name="status" value="completed"><span><i class="sglyph completed"></i>Completed</span></label>
         </div>
         <span class="err" id="eStatus"></span>
@@ -756,8 +756,8 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   var DAYS = 68; // 1 Oct – 7 Dec 2026 inclusive
   var MIN_DATE = '2026-10-01', MAX_DATE = '2026-12-07';
   var KEYS = { events: 'mijex.campaign.events.v1', kpis: 'mijex.campaign.kpis.v1', migr: 'mijex.campaign.migrations' };
-  var STATUS_LABEL = { planned: 'Planned', published: 'Published', completed: 'Completed' };
-  var STATUSES = ['planned', 'published', 'completed'];
+  var STATUS_LABEL = { planned: 'Planned', ongoing: 'Ongoing', completed: 'Completed' };
+  var STATUSES = ['planned', 'ongoing', 'completed'];
   var CATS = [
     { id: 'social', label: 'Social media', color: '#2F5E95' },
     { id: 'radio', label: 'Radio', color: '#C46A1C' },
@@ -784,11 +784,11 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   var TEASER_IMG = 'data:image/svg+xml,' + encodeURIComponent(TEASER_SVG);
 
   var DEFAULT_EVENTS = [
-    { id: 'ev-call-to-exhibit', title: 'First \u201cCall to Exhibit\u201d post', date: '2026-10-01', channel: 'Instagram & Facebook', status: 'published',
+    { id: 'ev-call-to-exhibit', title: 'First \u201cCall to Exhibit\u201d post', date: '2026-10-01', channel: 'Instagram & Facebook', status: 'completed',
       description: 'Campaign launch post inviting jewellers, designers and brands to apply for exhibition space, with directions to the exhibitor registration details.', image: '' },
-    { id: 'ev-teaser-video', title: 'Teaser video', date: '2026-10-04', channel: 'Instagram Reels & YouTube Shorts', status: 'published',
+    { id: 'ev-teaser-video', title: 'Teaser video', date: '2026-10-04', channel: 'Instagram Reels & YouTube Shorts', status: 'completed',
       description: 'Short cinematic teaser revealing the look and feel of the exhibition \u2014 light, gold and craftsmanship \u2014 to build early anticipation.', image: TEASER_IMG },
-    { id: 'ev-partners-welcome', title: 'Welcome post for the partners', date: '2026-10-08', channel: 'Instagram & LinkedIn', status: 'published',
+    { id: 'ev-partners-welcome', title: 'Welcome post for the partners', date: '2026-10-08', channel: 'Instagram & LinkedIn', status: 'completed',
       description: 'Post welcoming and thanking the exhibition partners and sponsors, tagging each partner to extend reach to their audiences.', image: '' },
     { id: 'ev-insta-news-ad', title: 'Paid ad through Insta News', date: '2026-10-25', channel: 'Insta News (paid)', status: 'completed',
       description: 'Sponsored placement through Insta News to amplify awareness of the exhibition beyond the organic audience.', image: '' },
@@ -926,7 +926,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   }
   function validEvent(e) {
     return e && typeof e === 'object' && typeof e.id === 'string' && typeof e.title === 'string' && e.title.trim() &&
-      typeof e.date === 'string' && isValidISO(e.date) && e.date >= MIN_DATE && e.date <= MAX_DATE && STATUSES.indexOf(e.status) > -1;
+      typeof e.date === 'string' && isValidISO(e.date) && e.date >= MIN_DATE && e.date <= MAX_DATE && (STATUSES.indexOf(e.status) > -1 || e.status === 'published');
   }
   function validKpi(k) { return k && typeof k === 'object' && typeof k.id === 'string' && typeof k.label === 'string' && isFinite(k.value); }
   function saveEvents() { persist(KEYS.events, state.events); }
@@ -944,11 +944,15 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     cursor: null,
     labelW: 168
   };
+  var statusMigrated = false;
   state.events.forEach(function (e) {
     e.description = e.description || ''; e.channel = e.channel || ''; e.image = e.image || '';
     if (!CAT[e.category]) e.category = 'social';
     if (!e.endDate || !isValidISO(e.endDate) || e.endDate <= e.date || e.endDate > MAX_DATE) e.endDate = '';
+    // "Published" was replaced by "Ongoing": finished items become Completed, running/upcoming ones Ongoing
+    if (e.status === 'published') { e.status = dayIndex(e.endDate || e.date) < todayIndex() ? 'completed' : 'ongoing'; statusMigrated = true; }
   });
+  if (statusMigrated) saveEvents();
   // One-time upgrade: add the billboard screen run to plans saved before activity types existed
   (function () {
     try {
@@ -1436,7 +1440,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   function renderFilters() {
     var g = $('filterGroup'); g.textContent = '';
     g.append(h('span', { class: 'ctrl-label', 'aria-hidden': 'true', text: 'Status' }));
-    var counts = { all: state.events.length, planned: 0, published: 0, completed: 0 };
+    var counts = { all: state.events.length, planned: 0, ongoing: 0, completed: 0 };
     state.events.forEach(function (e) { counts[e.status]++; });
     ['all'].concat(STATUSES).forEach(function (k) {
       var b = h('button', { type: 'button', class: 'chip', 'aria-pressed': state.filter === k ? 'true' : 'false', onclick: function () { setFilter(k); } },
@@ -1506,11 +1510,11 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
 
   /* ===================== Hero stats ===================== */
   function renderStats() {
-    var c = { planned: 0, published: 0, completed: 0 };
+    var c = { planned: 0, ongoing: 0, completed: 0 };
     state.events.forEach(function (e) { c[e.status]++; });
     $('hsTotal').textContent = state.events.length;
     $('hsPlanned').textContent = c.planned;
-    $('hsPublished').textContent = c.published;
+    $('hsOngoing').textContent = c.ongoing;
     $('hsCompleted').textContent = c.completed;
     var ti = todayIndex(), pct, phase, day;
     if (ti < 0) { pct = 0; phase = 'Campaign starts in'; day = (-ti) + (ti === -1 ? ' day' : ' days'); }
@@ -1774,7 +1778,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     else if (endDate < MIN_DATE || endDate > MAX_DATE) check(true, 'fEnd', 'eEnd', 'The end date must fall within 1 October \u2013 7 December 2026.');
     else check(isValidISO(date) && endDate < date, 'fEnd', 'eEnd', 'The end date can\u2019t be before the start date.');
     check(!channel, 'fChannel', 'eChannel', 'Add the channel or platform, e.g. Instagram.');
-    check(STATUSES.indexOf(status) < 0, null, 'eStatus', 'Choose a status: Planned, Published or Completed.');
+    check(STATUSES.indexOf(status) < 0, null, 'eStatus', 'Choose a status: Planned, Ongoing or Completed.');
     check(!desc, 'fDesc', 'eDesc', 'Add a short description of this activity.');
     check(image && !isSafeImage(image), 'fImage', 'eImage', 'Enter a full web address starting with https:// \u2014 or leave the field empty.');
     if (errs.length) {
