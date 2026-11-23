@@ -18,6 +18,7 @@
     - mijex.campaign.events.v1   (timeline events)
     - mijex.campaign.kpis.v1     (Campaign Highlights metrics)
     - mijex.campaign.migrations  (one-time upgrade marker)
+    - mijex.campaign.cats.v1     (activity types: names and colours)
   Data is per browser and per file location — it is not shared
   with other people or devices.
 
@@ -28,6 +29,7 @@
        localStorage.removeItem('mijex.campaign.events.v1');
        localStorage.removeItem('mijex.campaign.kpis.v1');
        localStorage.removeItem('mijex.campaign.migrations');
+       localStorage.removeItem('mijex.campaign.cats.v1');
        location.reload();
   3. Clear this site's data in your browser settings
      (Site settings → Clear data / Cookies and site data).
@@ -256,6 +258,20 @@ body.dragging-event .drag-tip{display:inline}
 .ag-item[draggable="true"]{cursor:grab}
 .ag-item[draggable="true"] button{cursor:pointer}
 .tl-label.drag-src,.ag-item.drag-src{opacity:.45}
+
+/* ---------- Activity types manager ---------- */
+.chip-manage{border-style:dashed;border-color:var(--gold-line);color:var(--gold-deep);background:rgba(251,244,230,.6)}
+.chip-manage:hover{background:#FFF6E4}
+.cat-rows{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cat-edit{display:grid;grid-template-columns:46px 1fr auto auto;gap:10px;align-items:center}
+.cat-edit input[type=color]{width:46px;height:44px;padding:3px;border:1px solid var(--line-2);border-radius:10px;background:#fff;cursor:pointer}
+.cat-edit .cnt{font-size:12.5px;color:var(--muted);white-space:nowrap;min-width:64px;text-align:right}
+.cat-edit.removed input[type=text]{text-decoration:line-through;opacity:.5}
+.cat-edit.removed input[type=color]{opacity:.35;pointer-events:none}
+.cat-edit .new-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ok)}
+.move-box{padding:12px 14px;border-radius:12px;background:rgba(212,178,106,.12);border:1px dashed var(--gold-line)}
+.move-box[hidden]{display:none}
+@media (max-width:640px){.cat-edit{grid-template-columns:46px 1fr auto}.cat-edit .cnt{grid-column:2;text-align:left;order:4}}
 
 /* ---------- Day panel (click a date) ---------- */
 .tl-daysel{position:absolute;top:0;background:rgba(212,178,106,.18);border-left:1px solid var(--gold-line);border-right:1px solid var(--gold-line);pointer-events:none}
@@ -796,6 +812,32 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   </form>
 </dialog>
 
+<!-- Activity types dialog -->
+<dialog id="catDialog" aria-labelledby="catDlgTitle">
+  <form id="catForm" novalidate>
+    <div class="dlg-head">
+      <h2 id="catDlgTitle">Activity types</h2>
+      <p>Rename, recolour, add or remove the types used to group events. Changes apply when you save.</p>
+      <button class="btn btn-ghost icon-btn" type="button" data-close aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="dlg-body">
+      <div class="form-alert" id="catAlert" role="alert" hidden></div>
+      <ul class="cat-rows" id="catRows"></ul>
+      <div><button class="btn btn-sm" type="button" id="catAddRow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add type</button></div>
+      <div class="field move-box" id="catMoveBox" hidden>
+        <label for="catMoveTo" id="catMoveLbl"></label>
+        <select id="catMoveTo"></select>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" type="button" data-close>Cancel</button>
+      <button class="btn btn-primary" type="submit">Save types</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Confirm dialog -->
 <dialog id="confirmDialog" aria-labelledby="cfTitle" aria-describedby="cfText">
   <div class="confirm-body">
@@ -819,10 +861,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   var DAY_MS = 86400000;
   var DAYS = 68; // 1 Oct – 7 Dec 2026 inclusive
   var MIN_DATE = '2026-10-01', MAX_DATE = '2026-12-07';
-  var KEYS = { events: 'mijex.campaign.events.v1', kpis: 'mijex.campaign.kpis.v1', migr: 'mijex.campaign.migrations' };
+  var KEYS = { events: 'mijex.campaign.events.v1', kpis: 'mijex.campaign.kpis.v1', migr: 'mijex.campaign.migrations', cats: 'mijex.campaign.cats.v1' };
   var STATUS_LABEL = { planned: 'Planned', ongoing: 'Ongoing', completed: 'Completed' };
   var STATUSES = ['planned', 'ongoing', 'completed'];
-  var CATS = [
+  var DEFAULT_CATS = [
     { id: 'social', label: 'Social media', color: '#2F5E95' },
     { id: 'radio', label: 'Radio', color: '#B05D14' },
     { id: 'influencers', label: 'Influencers', color: '#84489A' },
@@ -832,7 +874,9 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     { id: 'partners', label: 'Partners', color: '#3E3A36' },
     { id: 'photovideo', label: 'Photo & Video', color: '#A82D74' }
   ];
-  var CAT = {}; CATS.forEach(function (c) { CAT[c.id] = c; });
+  // Activity types are editable and saved in localStorage; these are the defaults
+  var CATS = [], CAT = {};
+  function setCats(list) { CATS.length = 0; CAT = {}; list.forEach(function (c) { CATS.push(c); CAT[c.id] = c; }); }
   var MONTHS = [{ name: 'October', start: 0, days: 31 }, { name: 'November', start: 31, days: 30 }, { name: 'December', start: 61, days: 7 }];
   var PAD = 56, LABEL_H = 66, LANE_H = 76, MONTH_H = 52, GAP_UP = 30, GAP_DOWN = 48;
   var MIN_DAYW = 10, MAX_DAYW = 80;
@@ -961,7 +1005,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   function fmt(s, opts) { var p = s.split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2])).toLocaleDateString('en-GB', Object.assign({ timeZone: 'UTC' }, opts)); }
   function fmtShort(s) { return fmt(s, { day: 'numeric', month: 'short' }); }
   function fmtLong(s) { return fmt(s, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
-  function catOf(e) { return CAT[e.category] || CAT.social; }
+  function catOf(e) { return CAT[e.category] || CATS[0]; }
   function endOf(e) { return e.endDate || e.date; }
   function spanDays(e) { return dayIndex(endOf(e)) - dayIndex(e.date) + 1; }
   function fmtRangeShort(e) { return e.endDate ? fmtShort(e.date) + ' \u2013 ' + fmtShort(e.endDate) : fmtShort(e.date); }
@@ -1006,6 +1050,9 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   function validKpi(k) { return k && typeof k === 'object' && typeof k.id === 'string' && typeof k.label === 'string' && isFinite(k.value); }
   function saveEvents() { persist(KEYS.events, state.events); }
   function saveKpis() { persist(KEYS.kpis, state.kpis); }
+  function validCat(c) { return c && typeof c === 'object' && typeof c.id === 'string' && c.id && typeof c.label === 'string' && c.label.trim() && /^#[0-9a-f]{6}$/i.test(c.color || ''); }
+  function saveCats() { persist(KEYS.cats, CATS.map(function (c) { return { id: c.id, label: c.label, color: c.color }; })); }
+  (function () { var lc = loadList(KEYS.cats, DEFAULT_CATS, validCat); setCats(lc.length ? lc : clone(DEFAULT_CATS)); })();
 
   /* ===================== State ===================== */
   var state = {
@@ -1022,7 +1069,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   var statusMigrated = false;
   state.events.forEach(function (e) {
     e.description = e.description || ''; e.channel = e.channel || ''; e.image = e.image || '';
-    if (!CAT[e.category]) e.category = 'social';
+    if (!CAT[e.category]) e.category = CATS[0].id;
     if (!e.endDate || !isValidISO(e.endDate) || e.endDate <= e.date || e.endDate > MAX_DATE) e.endDate = '';
     // "Published" was replaced by "Ongoing": finished items become Completed, running/upcoming ones Ongoing
     if (e.status === 'published') { e.status = dayIndex(e.endDate || e.date) < todayIndex() ? 'completed' : 'ongoing'; statusMigrated = true; }
@@ -1619,6 +1666,8 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       cg.append(h('button', { type: 'button', class: 'chip cat', 'data-cat': c.id, style: '--c:' + c.color, 'aria-pressed': state.cat === c.id ? 'true' : 'false', onclick: function () { setCat(c.id); }, 'aria-label': c.label + ', ' + (cc[c.id] || 0) },
         h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label, h('span', { class: 'count', text: cc[c.id] || 0 })));
     });
+    cg.append(h('button', { type: 'button', class: 'chip chip-manage edit-only', onclick: function () { openCatDialog(); }, title: 'Add, rename, recolour or remove activity types' },
+      pencilIcon(), 'Edit types'));
   }
   function refreshFiltered() { closePopover(false); renderFilters(); renderTimeline(); renderAgenda(); }
   function setFilter(k) { state.filter = k; refreshFiltered(); }
@@ -1825,9 +1874,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     openEventForm(null, ti >= 0 && ti < DAYS ? isoFromIndex(ti) : '');
   }
   $('btnResetAll').addEventListener('click', function () {
-    confirmAction('Reset all data?', 'This removes every change saved in this browser and restores the original four campaign events and the placeholder metrics.', 'Reset everything').then(function (ok) {
+    confirmAction('Reset all data?', 'This removes every change saved in this browser and restores the original campaign events, activity types and placeholder metrics.', 'Reset everything').then(function (ok) {
       if (!ok) return;
-      try { localStorage.removeItem(KEYS.events); localStorage.removeItem(KEYS.kpis); } catch (e) { }
+      try { localStorage.removeItem(KEYS.events); localStorage.removeItem(KEYS.kpis); localStorage.removeItem(KEYS.cats); } catch (e) { }
+      setCats(clone(DEFAULT_CATS)); buildCatControls();
       state.events = clone(DEFAULT_EVENTS); state.kpis = clone(DEFAULT_KPIS); state.filter = 'all'; state.cat = 'all';
       closePopover(false); renderAll();
       toast('All data has been reset to the original campaign plan.');
@@ -1875,10 +1925,16 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   /* ===================== Event form ===================== */
   var editingEventId = null;
   var evForm = $('eventForm');
-  CATS.forEach(function (c) {
-    $('catOpts').append(h('label', { class: 'status-opt cat', style: '--c:' + c.color },
-      h('input', { type: 'radio', name: 'category', value: c.id }), h('span', null, h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label)));
-  });
+  function buildCatControls() {
+    var box = $('catOpts'); box.textContent = '';
+    CATS.forEach(function (c) {
+      box.append(h('label', { class: 'status-opt cat', style: '--c:' + c.color },
+        h('input', { type: 'radio', name: 'category', value: c.id }), h('span', null, h('i', { class: 'cdot', 'aria-hidden': 'true' }), c.label)));
+    });
+    var sel = $('popCatSelect'); sel.textContent = '';
+    CATS.forEach(function (c) { sel.append(h('option', { value: c.id, text: c.label })); });
+  }
+  buildCatControls();
   $('catOpts').addEventListener('change', function () { setErr(null, 'eCat', ''); });
   function openEventForm(e, presetDate) {
     closePopover(false);
@@ -1931,7 +1987,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     function check(cond, inputId, errId, msg) { if (cond) { setErr(inputId, errId, msg); errs.push(inputId || (errId === 'eCat' ? 'catFirst' : 'statusFirst')); } else setErr(inputId, errId, ''); }
     check(!title, 'fTitle', 'eTitle', 'Please give the event a title.');
     if (title && title.length > 80) check(true, 'fTitle', 'eTitle', 'Keep the title under 80 characters.');
-    check(!CAT[category], null, 'eCat', 'Choose an activity type: Social media, Radio, Influencers, Branding, Screen, PR, Partners or Photo & Video.');
+    check(!CAT[category], null, 'eCat', 'Choose an activity type: ' + CATS.map(function (c) { return c.label; }).join(', ') + '.');
     if (!date) check(true, 'fDate', 'eDate', 'Please choose a date.');
     else if (!isValidISO(date)) check(true, 'fDate', 'eDate', 'That isn\u2019t a valid date. Use the date picker or the format YYYY-MM-DD.');
     else check(date < MIN_DATE || date > MAX_DATE, 'fDate', 'eDate', 'Choose a date within the campaign: 1 October \u2013 7 December 2026.');
@@ -2036,7 +2092,6 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   }
 
   /* ===================== Move between activity types ===================== */
-  CATS.forEach(function (c) { $('popCatSelect').append(h('option', { value: c.id, text: c.label })); });
   $('popCatSelect').addEventListener('change', function () { if (pop.id) moveEvent(pop.id, this.value); });
 
   function moveEvent(id, cat, isUndo) {
@@ -2091,6 +2146,90 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     ev.preventDefault();
     var id = dragId;
     moveEvent(id, chip.getAttribute('data-cat'));
+  });
+
+  /* ===================== Manage activity types ===================== */
+  function pencilIcon() {
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('width', '14'); s.setAttribute('height', '14'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none');
+    s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2'); s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = '<path d="M4 20h4L19 9l-4-4L4 16v4z"/>';
+    return s;
+  }
+  var PALETTE = ['#2F5E95', '#B05D14', '#84489A', '#2F7D5D', '#B8324A', '#0F7A8A', '#3E3A36', '#A82D74', '#5B6B1F', '#7A4B2A', '#3D4FA8', '#8A6726'];
+  var catDraft = [];
+  function catCounts() { var cc = {}; state.events.forEach(function (e) { cc[e.category] = (cc[e.category] || 0) + 1; }); return cc; }
+  function openCatDialog() {
+    var cc = catCounts();
+    catDraft = CATS.map(function (c) { return { id: c.id, label: c.label, color: c.color, count: cc[c.id] || 0, removed: false, isNew: false }; });
+    $('catAlert').hidden = true;
+    renderCatRows();
+    openDialog($('catDialog'));
+  }
+  function renderCatRows(focusIdx) {
+    var ul = $('catRows'), toFocus = null; ul.textContent = '';
+    catDraft.forEach(function (d, idx) {
+      var color = h('input', { type: 'color', value: d.color, 'aria-label': 'Colour for ' + (d.label || 'new type') });
+      color.addEventListener('input', function () { d.color = color.value; });
+      var name = h('input', { type: 'text', value: d.label, maxlength: '30', autocomplete: 'off', placeholder: 'Type name, e.g. Events', 'aria-label': 'Activity type name' });
+      if (d.removed) name.readOnly = true;
+      name.addEventListener('input', function () { d.label = name.value; name.removeAttribute('aria-invalid'); updateMoveBox(); });
+      var cnt = h('span', { class: 'cnt' }, d.isNew ? h('span', { class: 'new-tag', text: 'New' }) : (d.count + (d.count === 1 ? ' event' : ' events')));
+      var btn = d.removed
+        ? h('button', { type: 'button', class: 'btn btn-sm', text: 'Restore', onclick: function () { d.removed = false; renderCatRows(); } })
+        : h('button', { type: 'button', class: 'btn btn-sm btn-danger', text: 'Remove', 'aria-label': 'Remove ' + (d.label || 'this type'), onclick: function () {
+            if (catDraft.filter(function (x) { return !x.removed; }).length <= 1) { showCatAlert('Keep at least one activity type.'); return; }
+            if (d.isNew) catDraft.splice(idx, 1); else d.removed = true;
+            renderCatRows();
+          } });
+      ul.append(h('li', { class: 'cat-edit' + (d.removed ? ' removed' : ''), 'data-idx': idx }, color, name, cnt, btn));
+      if (focusIdx === idx) toFocus = name;
+    });
+    updateMoveBox();
+    if (toFocus) toFocus.focus();
+  }
+  function updateMoveBox() {
+    var moving = catDraft.filter(function (d) { return d.removed && d.count; }).reduce(function (n, d) { return n + d.count; }, 0);
+    var box = $('catMoveBox'), sel = $('catMoveTo'), prev = sel.value;
+    box.hidden = !moving;
+    if (!moving) return;
+    $('catMoveLbl').textContent = 'Move the ' + moving + (moving === 1 ? ' event' : ' events') + ' from removed types to:';
+    sel.textContent = '';
+    catDraft.forEach(function (d) { if (!d.removed) sel.append(h('option', { value: d.id, text: d.label.trim() || '(unnamed type)' })); });
+    if (prev && catDraft.some(function (d) { return d.id === prev && !d.removed; })) sel.value = prev;
+  }
+  function showCatAlert(msg) { var a = $('catAlert'); a.textContent = msg; a.hidden = false; }
+  $('catAddRow').addEventListener('click', function () {
+    var used = catDraft.map(function (d) { return d.color.toUpperCase(); });
+    var color = PALETTE.filter(function (c) { return used.indexOf(c) < 0; })[0] || PALETTE[catDraft.length % PALETTE.length];
+    catDraft.push({ id: uid('cat'), label: '', color: color, count: 0, removed: false, isNew: true });
+    $('catAlert').hidden = true;
+    renderCatRows(catDraft.length - 1);
+  });
+  $('catForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var kept = catDraft.filter(function (d) { return !d.removed; });
+    var rows = $('catRows').children, bad = null, seen = {};
+    catDraft.forEach(function (d, idx) {
+      if (d.removed) return;
+      var key = d.label.trim().toLowerCase(), inp = rows[idx].querySelector('input[type=text]');
+      var err = !key ? 'Give every activity type a name.' : seen[key] ? 'Two types are called “' + d.label.trim() + '” — use different names.' : null;
+      seen[key] = true;
+      if (err && !bad) { bad = err; inp.setAttribute('aria-invalid', 'true'); inp.focus(); }
+    });
+    if (!kept.length) bad = 'Keep at least one activity type.';
+    if (bad) { showCatAlert(bad); return; }
+    var moveTo = $('catMoveTo').value || kept[0].id;
+    var moved = 0;
+    setCats(kept.map(function (d) { return { id: d.id, label: d.label.trim(), color: d.color }; }));
+    if (!CAT[moveTo]) moveTo = CATS[0].id;
+    state.events.forEach(function (e) { if (!CAT[e.category]) { e.category = moveTo; moved++; } });
+    if (state.cat !== 'all' && !CAT[state.cat]) state.cat = 'all';
+    saveCats(); if (moved) saveEvents();
+    buildCatControls();
+    closeDialog($('catDialog'));
+    renderAll();
+    toast('Activity types saved.' + (moved ? ' ' + moved + (moved === 1 ? ' event moved' : ' events moved') + ' to ' + CAT[moveTo].label + '.' : ''));
   });
 
   /* ===================== Toast ===================== */
