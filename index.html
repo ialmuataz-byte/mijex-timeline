@@ -257,6 +257,25 @@ body.dragging-event .drag-tip{display:inline}
 .ag-item[draggable="true"] button{cursor:pointer}
 .tl-label.drag-src,.ag-item.drag-src{opacity:.45}
 
+/* ---------- Day panel (click a date) ---------- */
+.tl-daysel{position:absolute;top:0;background:rgba(212,178,106,.18);border-left:1px solid var(--gold-line);border-right:1px solid var(--gold-line);pointer-events:none}
+.daypop{position:fixed;z-index:61;width:min(360px,calc(100vw - 24px));max-height:min(460px,calc(100vh - 24px));display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line-2);border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden;animation:toastIn .18s var(--ease)}
+.daypop[hidden]{display:none}
+.dp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 14px 12px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#FBF4E6,var(--paper))}
+.dp-kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep)}
+.dp-title{margin:3px 0 2px;font-family:var(--serif);font-size:23px;font-weight:600;line-height:1.1;color:var(--charcoal)}
+.dp-title:focus{outline:none}
+.dp-count{font-size:13px;color:var(--muted)}
+.dp-list{list-style:none;margin:0;padding:10px;overflow:auto;display:grid;gap:8px}
+.dp-item{width:100%;display:grid;grid-template-columns:4px 1fr;gap:12px;text-align:left;padding:10px 12px 10px 10px;border-radius:12px;border:1px solid var(--line);background:#FFFEFB;cursor:pointer;transition:border-color .2s,background .2s}
+.dp-item:hover{border-color:var(--gold);background:#FFF9EE}
+.dp-bar{border-radius:4px;background:var(--c)}
+.dp-t{display:block;font-family:var(--serif);font-size:17.5px;font-weight:600;line-height:1.15;color:var(--charcoal)}
+.dp-m{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;font-size:12px;color:var(--muted)}
+.dp-empty{padding:22px 16px;text-align:center;color:var(--muted);font-size:14px}
+.dp-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.dp-foot[hidden]{display:none}
+
 /* ---------- Agenda ---------- */
 .agenda-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:34px 0 14px;padding-top:24px;border-top:1px solid var(--line)}
 .agenda-head h3{margin:0;font-family:var(--serif);font-weight:500;font-size:26px}
@@ -495,7 +514,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <div>
         <p class="sec-kicker">1 Oct – 7 Dec 2026</p>
         <h2 id="tlTitle">Marketing timeline</h2>
-        <p class="sec-desc">Hover, tap or focus an event to see its details. Switch on edit mode to add, change or remove events — everything saves in this browser.</p>
+        <p class="sec-desc">Hover, tap or focus an event to see its details, or click any date to list everything happening that day. Switch on edit mode to add, change or remove events — everything saves in this browser.</p>
       </div>
       <div class="actions">
         <button class="btn" id="btnEditToggle" type="button" aria-pressed="false"><span class="dot-live" aria-hidden="true"></span><span id="editToggleText">Edit mode</span></button>
@@ -507,7 +526,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
 
     <div class="edit-banner edit-only" role="status">
       <p><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A6726" stroke-width="1.8" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>
-        <span><strong>Editing is on.</strong> Click an empty day on the timeline to add an event there, or use Edit / Delete on any event. Changes save automatically.</span></p>
+        <span><strong>Editing is on.</strong> Click any day on the timeline to see its events and add one there, or use Edit / Delete on any event. Changes save automatically.</span></p>
       <div class="actions">
         <button class="btn btn-sm btn-ghost btn-danger" type="button" id="btnResetAll">Reset all data</button>
         <button class="btn btn-sm btn-gold" type="button" id="btnDoneEditing">Done editing</button>
@@ -545,6 +564,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     </div>
     <div class="tl-hint" aria-hidden="true">
       <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 13V5a2 2 0 014 0v6m0 0V4a2 2 0 014 0v7m0-2a2 2 0 014 0v5a7 7 0 01-14 0v-1l-1.5-3a1.6 1.6 0 012.8-1.5L8 13"/></svg>Hover or tap an event for details</span>
+      <span>Click any date to see all its events</span>
       <span>Drag or swipe sideways to explore</span>
       <span>Drag an event onto an activity button to move it</span>
       <span><kbd>←</kbd><kbd>→</kbd> move between events · <kbd>Enter</kbd> open · <kbd>Esc</kbd> close</span>
@@ -633,6 +653,21 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       </div>
     </div>
   </div>
+</div>
+
+<!-- Day panel: events on the clicked date -->
+<div class="daypop" id="dayPop" role="dialog" aria-modal="false" aria-labelledby="dpTitle" hidden>
+  <div class="dp-head">
+    <div>
+      <div class="dp-kicker" id="dpKicker"></div>
+      <h3 class="dp-title" id="dpTitle" tabindex="-1"></h3>
+      <div class="dp-count" id="dpCount" aria-live="polite"></div>
+    </div>
+    <button class="btn btn-ghost icon-btn pop-close" type="button" id="dpClose" aria-label="Close day view">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <ul class="dp-list" id="dpList"></ul>
+  <div class="dp-foot" id="dpFoot" hidden></div>
 </div>
 
 <!-- Event form dialog -->
@@ -1145,6 +1180,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
 
     updateFades();
     updateZoomButtons();
+    if (dayPop.i != null) { renderDaySel(); fillDayPanel(); positionDayPanel(); }
     if (pop.id) {
       var still = findEvent(pop.id) && layout.xs[pop.id] != null;
       if (!still) closePopover(false); else { var lab2 = labelFor(pop.id); if (lab2) { pop.trigger = lab2; markActive(pop.id); positionPopover(); } }
@@ -1356,17 +1392,85 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     return clamp(Math.floor((clientX - r.left - PAD) / state.dayW), 0, DAYS - 1);
   }
   track.addEventListener('pointermove', function (ev) {
-    if (!state.editing || ev.pointerType !== 'mouse' || drag.moved || !guide) return;
+    if (ev.pointerType !== 'mouse' || drag.moved || !guide) return;
     if (ev.target.closest('[data-id]')) { guide.hidden = true; return; }
     var i = dayFromClientX(ev.clientX);
     guide.hidden = false;
     guide.style.left = xOfIndex(i) + 'px';
-    guide.firstChild.textContent = '+ Add on ' + fmtShort(isoFromIndex(i));
+    guide.firstChild.textContent = fmt(isoFromIndex(i), { weekday: 'short', day: 'numeric', month: 'short' }) + ' · click to see events';
   });
+
+  /* ===================== Day panel: events on a clicked date ===================== */
+  var dayPopEl = $('dayPop');
+  var dayPop = { i: null };
+  function eventsOnDay(i, list) {
+    return list.filter(function (e) { return dayIndex(e.date) <= i && i <= dayIndex(endOf(e)); });
+  }
+  function renderDaySel() {
+    var old = track.querySelector('.tl-daysel'); if (old) old.remove();
+    if (dayPop.i == null) return;
+    var sel = h('div', { class: 'tl-daysel', 'aria-hidden': 'true', style: 'left:' + (PAD + dayPop.i * state.dayW) + 'px;width:' + state.dayW + 'px;height:' + layout.height + 'px' });
+    track.insertBefore(sel, track.querySelector('.tl-axis'));
+  }
+  function fillDayPanel() {
+    var i = dayPop.i, iso = isoFromIndex(i), ti = todayIndex();
+    $('dpKicker').textContent = 'Day ' + (i + 1) + ' of ' + DAYS + (i === ti ? ' · Today' : '');
+    $('dpTitle').textContent = fmtLong(iso);
+    var all = eventsOnDay(i, sortedEvents()), vis = eventsOnDay(i, visibleEvents());
+    $('dpCount').textContent = vis.length ? vis.length + (vis.length === 1 ? ' event on this day' : ' events on this day') : 'No events on this day';
+    var list = $('dpList'); list.textContent = '';
+    if (!vis.length) list.append(h('li', { class: 'dp-empty', text: all.length ? 'Events on this day are hidden by the current filter.' : 'Nothing is scheduled for this day.' }));
+    vis.forEach(function (e) {
+      var meta = h('span', { class: 'dp-m' }, catTag(e), pill(e.status));
+      if (e.endDate) meta.append(h('span', { text: 'Day ' + (i - dayIndex(e.date) + 1) + ' of ' + spanDays(e) + ' · ' + fmtRangeShort(e) }));
+      if (e.channel) meta.append(h('span', { text: e.channel }));
+      list.append(h('li', null, h('button', {
+        type: 'button', class: 'dp-item', style: '--c:' + catOf(e).color,
+        'aria-label': e.title + '. ' + catOf(e).label + '. ' + STATUS_LABEL[e.status] + '. Show on the timeline.',
+        onclick: function () { closeDayPanel(); goToEvent(e.id, { open: true }); }
+      }, h('span', { class: 'dp-bar', 'aria-hidden': 'true' }), h('span', null, h('span', { class: 'dp-t', text: e.title }), meta))));
+    });
+    var foot = $('dpFoot'); foot.textContent = '';
+    var hidden = all.length - vis.length;
+    if (hidden > 0) foot.append(h('span', null, hidden + (hidden === 1 ? ' more event hidden by filters' : ' more events hidden by filters')),
+      h('button', { type: 'button', class: 'btn btn-sm', text: 'Show all', onclick: function () { clearFilters(); } }));
+    if (state.editing) foot.append(h('button', { type: 'button', class: 'btn btn-sm btn-primary', style: 'margin-left:auto', text: '+ Add event on this day',
+      onclick: function () { var d = isoFromIndex(dayPop.i); closeDayPanel(); openEventForm(null, d); } }));
+    foot.hidden = !foot.childNodes.length;
+  }
+  function positionDayPanel() {
+    if (dayPop.i == null) return;
+    var tr = track.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+    var x = tr.left + xOfIndex(dayPop.i);
+    if (x < sr.left - 2 || x > sr.right + 2) { closeDayPanel(); return; }
+    var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    var pw = dayPopEl.offsetWidth, ph = dayPopEl.offsetHeight;
+    var axis = tr.top + layout.axisY;
+    var top = axis + 36;
+    if (top + ph > vh - 12) top = axis - ph - 16;
+    top = Math.max(12, Math.min(top, vh - ph - 12));
+    dayPopEl.style.left = clamp(x - pw / 2, 12, vw - pw - 12) + 'px';
+    dayPopEl.style.top = top + 'px';
+  }
+  function openDayPanel(i) {
+    closePopover(false);
+    dayPop.i = i;
+    dayPopEl.hidden = false;
+    renderDaySel(); fillDayPanel(); positionDayPanel();
+    $('dpTitle').focus({ preventScroll: true });
+  }
+  function closeDayPanel(returnFocus) {
+    if (dayPop.i == null) return;
+    dayPop.i = null;
+    dayPopEl.hidden = true;
+    renderDaySel();
+    if (returnFocus) scroller.focus({ preventScroll: true });
+  }
+  $('dpClose').addEventListener('click', function () { closeDayPanel(true); });
   track.addEventListener('pointerleave', function () { if (guide) guide.hidden = true; });
 
   track.addEventListener('pointerover', function (ev) {
-    if (ev.pointerType !== 'mouse' || drag.active) return;
+    if (ev.pointerType !== 'mouse' || drag.active || dayPop.i != null) return;
     var t = ev.target.closest('[data-id]'); if (!t) return;
     var id = t.getAttribute('data-id');
     clearTimeout(pop.hideT);
@@ -1386,15 +1490,15 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     if (drag.moved) return;
     var t = ev.target.closest('[data-id]');
     if (t) {
+      closeDayPanel(false);
       var id = t.getAttribute('data-id');
       if (pop.id === id && pop.pinned) { closePopover(ev.detail === 0); return; }
       openPopover(id, labelFor(id) || t, true, ev.detail === 0);
       return;
     }
-    if (state.editing) {
-      var i = dayFromClientX(ev.clientX);
-      openEventForm(null, isoFromIndex(i));
-    } else if (pop.id) closePopover(false);
+    // Clicking any date shows the events on that day (toggle off when clicking it again)
+    var i = dayFromClientX(ev.clientX);
+    if (dayPop.i === i) closeDayPanel(false); else openDayPanel(i);
   });
   track.addEventListener('focusin', function (ev) {
     var t = ev.target.closest('.tl-label'); if (!t) return;
@@ -1431,6 +1535,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   });
   scroller.addEventListener('scroll', function () {
     updateFades();
+    positionDayPanel();
     if (pop.id) { if (pop.pinned) positionPopover(); else closePopover(false); }
   }, { passive: true });
 
@@ -1446,12 +1551,14 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   $('popDelete').addEventListener('click', function () { var id = pop.id; closePopover(false); deleteEvent(id); });
 
   document.addEventListener('pointerdown', function (ev) {
+    if (dayPop.i != null && !dayPopEl.contains(ev.target) && !track.contains(ev.target) && !ev.target.closest('dialog, .toasts')) closeDayPanel(false);
     if (!pop.id) return;
     if (popEl.contains(ev.target) || ev.target.closest('#tlTrack [data-id]')) return;
     if (ev.target.closest('dialog')) return;
     closePopover(false);
   });
   document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape' && dayPop.i != null && !document.querySelector('dialog[open]')) { ev.preventDefault(); closeDayPanel(true); return; }
     if (ev.key === 'Escape' && pop.id && !document.querySelector('dialog[open]')) { ev.preventDefault(); closePopover(true); }
   });
   var resizeT = 0;
@@ -1466,9 +1573,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       } else if (changed) renderTimeline();
       else { updateFades(); updateZoomButtons(); }
       if (pop.id) positionPopover();
+      positionDayPanel();
     }, 120);
   });
-  window.addEventListener('scroll', function () { if (pop.id) { if (pop.pinned) positionPopover(); else closePopover(false); } }, { passive: true });
+  window.addEventListener('scroll', function () { positionDayPanel(); if (pop.id) { if (pop.pinned) positionPopover(); else closePopover(false); } }, { passive: true });
 
   /* Controls */
   document.querySelectorAll('[data-jump]').forEach(function (b) {
@@ -1703,7 +1811,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   }
   $('btnEditToggle').addEventListener('click', function () {
     setEditing(!state.editing);
-    toast(state.editing ? 'Edit mode on \u2014 click an empty day on the timeline to add an event there.' : 'Edit mode off. Your changes are saved.');
+    toast(state.editing ? 'Edit mode on \u2014 click any day on the timeline to see its events and add one there.' : 'Edit mode off. Your changes are saved.');
   });
   $('btnDoneEditing').addEventListener('click', function () { setEditing(false); toast('Edit mode off. Your changes are saved.'); });
   $('btnEditKpis').addEventListener('click', function () {
