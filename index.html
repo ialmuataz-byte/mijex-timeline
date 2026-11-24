@@ -7,7 +7,7 @@
 <title>MIJEX 2026 · Campaign Tracker</title>
 <!--
   ============================================================
-  MIJEX 2026 — Marketing Campaign Tracker (single-file page)
+  MIJEX 2026 — Marketing Campaign Tracker (single-file page, 15 Sep – 7 Dec)
   ============================================================
   Everything (HTML, CSS, JavaScript) lives in this one file.
   No backend, no external services, no network requests.
@@ -507,7 +507,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <p class="subtitle">Every post, teaser and partnership moment in one place — follow the campaign from the first call to exhibit through the final countdown.</p>
       <div class="range-pill">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-        <span><strong>1 October – 7 December 2026</strong> · 68 days</span>
+        <span><strong>15 September – 7 December 2026</strong> · 84 days</span>
       </div>
     </div>
     <div class="hero-stats" aria-label="Campaign summary">
@@ -528,7 +528,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   <section class="panel" id="timeline" aria-labelledby="tlTitle" tabindex="-1">
     <div class="sec-head">
       <div>
-        <p class="sec-kicker">1 Oct – 7 Dec 2026</p>
+        <p class="sec-kicker">15 Sep – 7 Dec 2026</p>
         <h2 id="tlTitle">Marketing timeline</h2>
         <p class="sec-desc">Hover, tap or focus an event to see its details, or click any date to list everything happening that day. Switch on edit mode to add, change or remove events — everything saves in this browser.</p>
       </div>
@@ -555,9 +555,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <div class="ctrl-group">
         <span class="ctrl-label" aria-hidden="true">Jump</span>
         <div class="seg" role="group" aria-label="Jump to month">
-          <button class="btn" type="button" data-jump="0">Oct</button>
-          <button class="btn" type="button" data-jump="31">Nov</button>
-          <button class="btn" type="button" data-jump="61">Dec</button>
+          <button class="btn" type="button" data-jump="0">Sep</button>
+          <button class="btn" type="button" data-jump="16">Oct</button>
+          <button class="btn" type="button" data-jump="47">Nov</button>
+          <button class="btn" type="button" data-jump="77">Dec</button>
           <button class="btn" type="button" id="btnToday">Today</button>
         </div>
         <button class="btn icon-btn" type="button" id="btnPrev" aria-label="Previous event" title="Previous event">
@@ -691,7 +692,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   <form id="eventForm" novalidate>
     <div class="dlg-head">
       <h2 id="evDlgTitle">Add event</h2>
-      <p>Fields marked <span class="req">*</span> are required. Dates must fall between 1 Oct and 7 Dec 2026.</p>
+      <p>Fields marked <span class="req">*</span> are required. Dates must fall between 15 Sep and 7 Dec 2026.</p>
       <button class="btn btn-ghost icon-btn" type="button" data-close aria-label="Close">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
@@ -710,12 +711,12 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       <div class="field-row">
         <div class="field">
           <label for="fDate">Start date <span class="req">*</span></label>
-          <input type="date" id="fDate" name="date" min="2026-10-01" max="2026-12-07" aria-describedby="eDate">
+          <input type="date" id="fDate" name="date" min="2026-09-15" max="2026-12-07" aria-describedby="eDate">
           <span class="err" id="eDate"></span>
         </div>
         <div class="field">
           <label for="fEnd">End date <span class="opt">(optional)</span></label>
-          <input type="date" id="fEnd" name="endDate" min="2026-10-01" max="2026-12-07" aria-describedby="hEnd eEnd">
+          <input type="date" id="fEnd" name="endDate" min="2026-09-15" max="2026-12-07" aria-describedby="hEnd eEnd">
           <span class="help" id="hEnd">For activities that run several days. Leave empty for a single day.</span>
           <span class="err" id="eEnd"></span>
         </div>
@@ -857,10 +858,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   'use strict';
 
   /* ===================== Constants ===================== */
-  var START_UTC = Date.UTC(2026, 9, 1);
+  var START_UTC = Date.UTC(2026, 8, 15);
   var DAY_MS = 86400000;
-  var DAYS = 68; // 1 Oct – 7 Dec 2026 inclusive
-  var MIN_DATE = '2026-10-01', MAX_DATE = '2026-12-07';
+  var DAYS = 84; // 15 Sep – 7 Dec 2026 inclusive
+  var MIN_DATE = '2026-09-15', MAX_DATE = '2026-12-07';
   var KEYS = { events: 'mijex.campaign.events.v1', kpis: 'mijex.campaign.kpis.v1', migr: 'mijex.campaign.migrations', cats: 'mijex.campaign.cats.v1' };
   var STATUS_LABEL = { planned: 'Planned', ongoing: 'Ongoing', completed: 'Completed' };
   var STATUSES = ['planned', 'ongoing', 'completed'];
@@ -877,7 +878,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   // Activity types are editable and saved in localStorage; these are the defaults
   var CATS = [], CAT = {};
   function setCats(list) { CATS.length = 0; CAT = {}; list.forEach(function (c) { CATS.push(c); CAT[c.id] = c; }); }
-  var MONTHS = [{ name: 'October', start: 0, days: 31 }, { name: 'November', start: 31, days: 30 }, { name: 'December', start: 61, days: 7 }];
+  var MONTHS = [{ name: 'September', start: 0, days: 16 }, { name: 'October', start: 16, days: 31 }, { name: 'November', start: 47, days: 30 }, { name: 'December', start: 77, days: 7 }];
   var PAD = 56, LABEL_H = 66, LANE_H = 76, MONTH_H = 52, GAP_UP = 30, GAP_DOWN = 48;
   var MIN_DAYW = 10, MAX_DAYW = 80;
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1270,8 +1271,8 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   }
   function fit() {
     var f = fitDayW();
-    if (f >= 14) setDayW(f, 'fit');
-    else { setDayW(Math.max(f, 14), 'manual'); toast('The full date range is wider than your screen \u2014 swipe sideways to explore.'); }
+    if (f >= 12) setDayW(f, 'fit');
+    else { setDayW(Math.max(f, 12), 'manual'); toast('The full date range is wider than your screen \u2014 swipe sideways to explore.'); }
   }
   function scrollToX(x, smooth) {
     scroller.scrollTo({ left: x - scroller.clientWidth / 2, behavior: smooth && !reduceMotion ? 'smooth' : 'auto' });
@@ -1616,7 +1617,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
       var changed = lw !== state.labelW; state.labelW = lw;
       if (state.zoomMode === 'fit') {
         var f = fitDayW();
-        if (f >= 14) setDayW(f, 'fit'); else setDayW(30, 'manual');
+        if (f >= 12) setDayW(f, 'fit'); else setDayW(30, 'manual');
       } else if (changed) renderTimeline();
       else { updateFades(); updateZoomButtons(); }
       if (pop.id) positionPopover();
@@ -1634,7 +1635,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
   });
   $('btnToday').addEventListener('click', function () {
     var ti = todayIndex();
-    if (ti < 0) { toast('The campaign hasn\u2019t started yet \u2014 showing 1 October.'); ti = 0; }
+    if (ti < 0) { toast('The campaign hasn\u2019t started yet \u2014 showing 15 September.'); ti = 0; }
     else if (ti >= DAYS) { toast('The campaign window has ended \u2014 showing 7 December.'); ti = DAYS - 1; }
     scrollToX(xOfIndex(ti), true);
   });
@@ -1990,10 +1991,10 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
     check(!CAT[category], null, 'eCat', 'Choose an activity type: ' + CATS.map(function (c) { return c.label; }).join(', ') + '.');
     if (!date) check(true, 'fDate', 'eDate', 'Please choose a date.');
     else if (!isValidISO(date)) check(true, 'fDate', 'eDate', 'That isn\u2019t a valid date. Use the date picker or the format YYYY-MM-DD.');
-    else check(date < MIN_DATE || date > MAX_DATE, 'fDate', 'eDate', 'Choose a date within the campaign: 1 October \u2013 7 December 2026.');
+    else check(date < MIN_DATE || date > MAX_DATE, 'fDate', 'eDate', 'Choose a date within the campaign: 15 September \u2013 7 December 2026.');
     if (!endDate) setErr('fEnd', 'eEnd', '');
     else if (!isValidISO(endDate)) check(true, 'fEnd', 'eEnd', 'That isn\u2019t a valid end date.');
-    else if (endDate < MIN_DATE || endDate > MAX_DATE) check(true, 'fEnd', 'eEnd', 'The end date must fall within 1 October \u2013 7 December 2026.');
+    else if (endDate < MIN_DATE || endDate > MAX_DATE) check(true, 'fEnd', 'eEnd', 'The end date must fall within 15 September \u2013 7 December 2026.');
     else check(isValidISO(date) && endDate < date, 'fEnd', 'eEnd', 'The end date can\u2019t be before the start date.');
     check(!channel, 'fChannel', 'eChannel', 'Add the channel or platform, e.g. Instagram.');
     check(STATUSES.indexOf(status) < 0, null, 'eStatus', 'Choose a status: Planned, Ongoing or Completed.');
@@ -2251,7 +2252,7 @@ footer{max-width:1240px;margin:0 auto;padding:0 28px 40px;color:var(--muted);fon
 
   state.labelW = scroller.clientWidth < 600 ? 148 : 168;
   var f0 = fitDayW();
-  if (f0 >= 14) { state.dayW = f0; state.zoomMode = 'fit'; } else { state.dayW = 30; state.zoomMode = 'manual'; }
+  if (f0 >= 12) { state.dayW = f0; state.zoomMode = 'fit'; } else { state.dayW = 30; state.zoomMode = 'manual'; }
   renderAll();
   if (state.zoomMode !== 'fit') {
     var ti0 = todayIndex();
